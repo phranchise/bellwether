@@ -129,6 +129,46 @@ OPS_DOCS = {
 }
 
 
+# --- Product-level data for the "selling right now" board (units this vs last week). ---
+# (name, department, unit_price, units_this_week, units_last_week)
+_PRODUCTS = [
+    ("Fall Grass Seed 20 lb", "Lawn & Garden", 49.99, 420, 240),
+    ("Trail Camera (cellular)", "Sporting Goods", 129.99, 310, 150),
+    ("Insulated Work Bibs", "Apparel", 89.99, 260, 140),
+    ("Potted Mums 8 in", "Lawn & Garden", 8.99, 1900, 1100),
+    ("40 lb Premium Dog Food", "Pet", 54.99, 180, 520),      # supplier delay -> falling
+    ("Leaf Blower (cordless)", "Lawn & Garden", 159.99, 240, 160),
+    ("12 ga Field Loads (box)", "Sporting Goods", 12.99, 880, 520),
+    ("Galvanized Stock Tank 100 gal", "Ranch & Farm", 199.99, 95, 88),
+    ("Leather Work Gloves", "Apparel", 24.99, 610, 470),
+    ("Cordless Drill Kit", "Hardware", 149.99, 205, 190),
+    ("Full-Synthetic Oil 5 qt", "Automotive", 34.99, 430, 405),
+    ("Garden Hose 50 ft", "Lawn & Garden", 29.99, 120, 300),  # season end -> falling
+    ("Cat Litter 40 lb", "Pet", 19.99, 340, 360),
+    ("LED Shop Light", "Hardware", 39.99, 280, 175),
+    ("Patio Heater (propane)", "Lawn & Garden", 179.99, 20, 210),  # recalled -> collapsing
+    ("Heated Dog Bowl", "Pet", 34.99, 190, 90),
+]
+
+PRODUCTS = [
+    {
+        "name": n, "department": d, "price": p,
+        "units": u, "sales": round(u * p),
+        "momentum_pct": round((u / lu - 1) * 100) if lu else 0,
+    }
+    for n, d, p, u, lu in _PRODUCTS
+]
+
+# The systems a production deployment would unify. Synthetic here; each would connect
+# via an MCP or API. Surfaced in the "Connected sources" strip on the dashboard.
+DATA_SOURCES = [
+    {"name": "Horizon POS", "kind": "Sales & transactions", "via": "API", "status": "sample"},
+    {"name": "Microsoft 365", "kind": "Tasks, email, files", "via": "MCP", "status": "sample"},
+    {"name": "Inventory Service", "kind": "On-hand & stockouts", "via": "API", "status": "sample"},
+    {"name": "Vendor EDI", "kind": "Supply & recalls", "via": "API", "status": "sample"},
+]
+
+
 # ---- accessors used by analytics.py, the agent tools, and the endpoints ----
 
 def latest_index():
@@ -148,6 +188,19 @@ def totals_by_week(metric):
 def current_week(dept):
     """The latest weekly row for a department."""
     return SERIES[dept][latest_index()]
+
+
+def department_breakdown():
+    """Per-department current-week sales vs plan, for the performance chart."""
+    i = latest_index()
+    rows = []
+    for d in DEPARTMENTS:
+        wk = SERIES[d][i]
+        rows.append({
+            "department": d, "sales": wk["sales_actual"], "plan": wk["sales_plan"],
+            "vs_plan_pct": round((wk["sales_actual"] / wk["sales_plan"] - 1) * 100, 1),
+        })
+    return sorted(rows, key=lambda r: r["vs_plan_pct"])
 
 
 def store_kpis():

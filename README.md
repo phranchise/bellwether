@@ -1,9 +1,12 @@
-# Retail AIOS — Store Manager Command Center
+# Bellwether — the leading indicator for every store
 
-An AI operating system for retail store managers. It opens to one screen that shows
-what actually needs attention today, ranked by dollar impact, and answers plain
-questions about the store's numbers, tasks, and policies. Built as the capstone for
-the TAI Agentic AI Engineering Bootcamp.
+An AI operating system for retail operations. It opens to one screen that shows what
+actually needs attention today, ranked by dollar impact, surfaces what's selling
+right now, and answers plain questions about the store's numbers, tasks, and
+policies. Built as the capstone for the TAI Agentic AI Engineering Bootcamp.
+
+**Brand & design system:** see [BRAND.md](BRAND.md). Bellwether is a fictional
+retail-technology company; the identity is its own, separate from any personal brand.
 
 > **Prototype with 100% synthetic data.** Inspired by a real problem I saw working
 > at a retail support center: store data scattered across Microsoft tools and a

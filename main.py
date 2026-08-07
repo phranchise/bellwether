@@ -89,13 +89,17 @@ def summary():
                      for w in range(n)],
         "labor": rd.totals_by_week("labor_hours_actual"),
     }
+    movers = sorted(rd.PRODUCTS, key=lambda p: p["momentum_pct"], reverse=True)
     return {
         "store": rd.STORE,
         "kpis": rd.store_kpis(),
         "alerts": alerts,
         "tasks": rd.TASKS,
-        "departments": rd.DEPARTMENTS,
+        "departments": rd.department_breakdown(),
         "trends": trends,
+        "top_movers": movers[:5],
+        "slow_movers": [m for m in movers if m["momentum_pct"] < 0][-4:][::-1],
+        "data_sources": rd.DATA_SOURCES,
     }
 
 
