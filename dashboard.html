@@ -162,6 +162,42 @@
     .src .via { font-family: var(--mono); font-size: .62rem; letter-spacing: .08em; padding: 2px 6px; border-radius: 5px;
                 background: var(--brand-soft); color: var(--brand-ink); }
     .src .n { font-weight: 600; font-size: .9rem; } .src .k { color: var(--muted); font-size: .76rem; }
+    /* Market ticker */
+    .ticker { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 2px; scrollbar-width: none; }
+    .ticker::-webkit-scrollbar { display: none; }
+    .tk { display: inline-flex; align-items: baseline; gap: 7px; flex: none; background: var(--card);
+          border: 1px solid var(--hairline); border-radius: 999px; padding: 6px 13px; box-shadow: var(--shadow); }
+    .tk .sym { font-family: var(--mono); font-weight: 700; font-size: .82rem; }
+    .tk .px { font-family: var(--mono); font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .tk .ch { font-family: var(--mono); font-size: .78rem; font-weight: 600; }
+    .tk .ch.up { color: var(--good); } .tk .ch.down { color: var(--bad); }
+    .tk-src { font-family: var(--mono); font-size: .64rem; color: var(--muted); align-self: center; padding-left: 4px; white-space: nowrap; }
+
+    /* Loss prevention */
+    .lp { background: var(--card); border: 1px solid var(--hairline); border-left: 5px solid var(--bad);
+          border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px 17px; }
+    .lp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .lp-title { font-weight: 650; }
+    .risk { font-family: var(--mono); font-size: .74rem; font-weight: 700; color: var(--bad);
+            background: color-mix(in srgb, var(--bad) 12%, transparent); padding: 3px 10px; border-radius: 999px; }
+    .lp-reasons { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: .87rem; }
+    .lp-clear { color: var(--muted); }
+
+    /* Comms */
+    .comms { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 800px) { .comms { grid-template-columns: repeat(3, 1fr); } }
+    .comms .card { padding: 14px 15px; }
+    .comms h3 { font-family: var(--serif); font-weight: 600; font-size: 1rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+    .badge { font-family: var(--mono); font-size: .66rem; font-weight: 700; color: #fff; background: var(--signal);
+             border-radius: 999px; padding: 1px 7px; }
+    .ci { padding: 9px 0; border-top: 1px solid var(--hairline); }
+    .ci:first-of-type { border-top: none; }
+    .ci .top { display: flex; justify-content: space-between; gap: 8px; }
+    .ci .who { font-weight: 600; font-size: .87rem; } .ci .when { color: var(--muted); font-size: .74rem; font-family: var(--mono); white-space: nowrap; }
+    .ci .sub { font-size: .85rem; } .ci .prev { color: var(--muted); font-size: .8rem; }
+    .ci.unread .who::before { content: "●"; color: var(--signal); font-size: .7rem; margin-right: 5px; }
+    .cal .time { font-family: var(--mono); font-size: .78rem; color: var(--brand); font-weight: 600; }
+
     .skeleton { color: var(--muted); }
     footer { margin: 3rem 0 1rem; color: var(--muted); font-size: .82rem; border-top: 1px solid var(--hairline); padding-top: 1rem; }
     .tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--paper); font-family: var(--mono);
@@ -178,6 +214,8 @@
       <span class="chip-sample" title="This prototype runs on synthetic data">SAMPLE DATA</span>
     </div>
   </div>
+
+  <div class="ticker" id="ticker" aria-label="Market watch"></div>
 
   <header class="hero">
     <div class="greet" id="greet">Good day</div>
@@ -210,9 +248,19 @@
       </div>
     </section>
 
+    <section aria-labelledby="lp-h">
+      <h2 id="lp-h">Loss prevention <span class="count">register anomaly detection</span></h2>
+      <div id="lp"></div>
+    </section>
+
     <section aria-labelledby="dept-h">
       <h2 id="dept-h">Department performance <span class="count">sales vs plan this week</span></h2>
       <div class="chart" id="chart"></div>
+    </section>
+
+    <section aria-labelledby="comms-h">
+      <h2 id="comms-h">Your day <span class="count">inbox · messages · schedule</span></h2>
+      <div class="comms" id="comms"></div>
     </section>
 
     <section aria-labelledby="ai-h">
@@ -379,6 +427,48 @@ function headline(store, alerts) {
     : "Everything's tracking to plan today.";
 }
 
+function renderLP(flagged) {
+  if (!flagged || !flagged.length) {
+    $("#lp").innerHTML = `<div class="card" style="padding:15px 17px"><span class="lp-clear">✓ No registers flagged. All transaction patterns are within the store's normal range.</span></div>`;
+    return;
+  }
+  $("#lp").innerHTML = flagged.map(f =>
+    `<div class="lp"><div class="lp-head">
+      <span class="lp-title">${esc(f.register)} — ${esc(f.cashier)}</span>
+      <span class="risk">risk ${f.risk}/100 · ${fmtUsd(f.exposure_usd)}/wk exposure</span></div>
+      <ul class="lp-reasons">${f.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+      <p class="alert-rec">→ Pull the register's exception report and review voids/refunds with the cashier.</p></div>`).join("");
+}
+
+function renderComms(c) {
+  const unread = c.emails.filter(e => e.unread).length;
+  const emails = c.emails.map(e => `<div class="ci ${e.unread ? "unread" : ""}">
+    <div class="top"><span class="who">${esc(e.from)}</span><span class="when">${esc(e.when)}</span></div>
+    <div class="sub">${esc(e.subject)}</div><div class="prev">${esc(e.preview)}</div></div>`).join("");
+  const msgs = c.messages.map(m => `<div class="ci">
+    <div class="top"><span class="who">${esc(m.from)}</span><span class="when">${esc(m.when)}</span></div>
+    <div class="prev">${esc(m.text)}</div></div>`).join("");
+  const cal = c.calendar.map(e => `<div class="ci cal">
+    <div class="top"><span class="time">${esc(e.time)}</span><span class="when">${esc(e.kind)}</span></div>
+    <div class="sub">${esc(e.title)}</div></div>`).join("");
+  $("#comms").innerHTML =
+    `<div class="card"><h3>📥 Inbox ${unread ? `<span class="badge">${unread} new</span>` : ""}</h3>${emails}</div>
+     <div class="card"><h3>💬 Team messages</h3>${msgs}</div>
+     <div class="card"><h3>📅 Today</h3>${cal}</div>`;
+}
+
+async function loadTicker() {
+  try {
+    const d = await (await fetch("/api/ticker")).json();
+    $("#ticker").innerHTML = d.quotes.map(q => {
+      const up = q.change_pct >= 0;
+      return `<span class="tk"><span class="sym">${esc(q.symbol)}</span>
+        <span class="px">${q.price.toFixed(2)}</span>
+        <span class="ch ${up ? "up" : "down"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${q.change_pct}%</span></span>`;
+    }).join("") + `<span class="tk-src">${d.source === "live" ? "● live" : "sample"}</span>`;
+  } catch { $("#ticker").innerHTML = ""; }
+}
+
 async function loadSummary() {
   try {
     const d = await (await fetch("/api/summary")).json();
@@ -387,7 +477,9 @@ async function loadSummary() {
     renderKPIs(d.kpis, d.trends);
     renderAlerts();
     renderProducts(d.top_movers, d.slow_movers);
+    renderLP(d.loss_prevention);
     renderChart(d.departments);
+    renderComms(d.comms);
     renderSources(d.data_sources);
   } catch (e) { $("#alerts").innerHTML = `<p class="skeleton">Couldn't load store data. Refresh to retry.</p>`; }
 }
@@ -418,7 +510,9 @@ $("#ask-form").addEventListener("submit", e => { e.preventDefault(); const q = $
 
 renderChips();
 loadSummary();
+loadTicker();
 setInterval(loadSummary, 45000);  // keep "selling right now" and alerts fresh
+setInterval(loadTicker, 30000);   // refresh market watch
 </script>
 </body>
 </html>

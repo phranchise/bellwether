@@ -71,6 +71,20 @@ def search_ops_docs(query: str) -> dict:
             "found_in_docs": bool(grounded)}
 
 
+def get_loss_prevention() -> dict:
+    """Registers flagged for shrink or fraud risk (unusual refunds, voids, discounts,
+    no-sales), each with a risk score, the reasons, and estimated weekly exposure.
+    Call this for questions about shrink, fraud, theft, or register/cashier issues."""
+    return {"flagged": analytics.detect_shrink()}
+
+
+def get_comms() -> dict:
+    """The manager's unread emails, team messages, and today's calendar/schedule
+    (freight, huddles, visits). Call this for questions about email, messages,
+    schedule, or what's on today."""
+    return {"emails": rd.EMAILS, "messages": rd.MESSAGES, "calendar": rd.CALENDAR}
+
+
 INSTRUCTION = (
     "You are the Retail AIOS assistant for a busy store manager. Be concise, "
     "direct, and practical. Follow these rules:\n"
@@ -92,7 +106,7 @@ root_agent = Agent(
     model=MODEL,
     description="Store-manager assistant grounded in the store's own KPIs, tasks, and ops docs.",
     instruction=INSTRUCTION,
-    tools=[get_store_kpis, get_alerts, get_tasks, search_ops_docs],
+    tools=[get_store_kpis, get_alerts, get_tasks, search_ops_docs, get_loss_prevention, get_comms],
 )
 
 
@@ -155,9 +169,14 @@ _OAI_TOOLS = [
     {"type": "function", "function": {"name": "search_ops_docs",
         "description": search_ops_docs.__doc__,
         "parameters": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}}},
+    {"type": "function", "function": {"name": "get_loss_prevention",
+        "description": get_loss_prevention.__doc__, "parameters": {"type": "object", "properties": {}}}},
+    {"type": "function", "function": {"name": "get_comms",
+        "description": get_comms.__doc__, "parameters": {"type": "object", "properties": {}}}},
 ]
 _TOOL_FNS = {"get_store_kpis": get_store_kpis, "get_alerts": get_alerts,
-             "get_tasks": get_tasks, "search_ops_docs": search_ops_docs}
+             "get_tasks": get_tasks, "search_ops_docs": search_ops_docs,
+             "get_loss_prevention": get_loss_prevention, "get_comms": get_comms}
 
 
 def run_openai_agent(message: str, note: str = None):

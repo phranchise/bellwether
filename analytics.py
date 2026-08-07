@@ -75,6 +75,44 @@ def days_to_stockout(dept):
     return round(weeks * 7)
 
 
+SHRINK_METRICS = ["refund_pct", "void_pct", "discount_pct", "no_sale_count"]
+
+
+def detect_shrink():
+    """Flag registers whose transaction behavior deviates from the store norm.
+
+    Shrink and point-of-sale fraud (sweethearting, refund/void abuse) show up as a
+    register running high on refunds, voids, discounts, and no-sales at once. For
+    each metric we z-score every register against the store baseline, then sum the
+    high-side z's into a composite risk. High-risk registers come back with the
+    specific reasons, ranked. Pure anomaly detection, no labels needed.
+    """
+    flagged = []
+    stats = {}
+    for m in SHRINK_METRICS:
+        vals = [r[m] for r in rd.REGISTERS]
+        mu, sd = mean(vals), pstdev(vals)
+        stats[m] = (mu, sd or 1.0)
+    est_reg_sales = sum(rd.current_week(d)["sales_actual"] for d in rd.DEPARTMENTS) / max(1, len(rd.REGISTERS))
+    for r in rd.REGISTERS:
+        reasons, composite = [], 0.0
+        for m in SHRINK_METRICS:
+            mu, sd = stats[m]
+            z = (r[m] - mu) / sd
+            if z > 1.5:  # only the high side matters for shrink
+                composite += z
+                reasons.append(f"{m.replace('_', ' ').replace('pct', '%')} {r[m]} (z={round(z, 1)})")
+        risk = min(100, round(composite * 12))
+        if risk >= 50:
+            # Rough weekly exposure: refund % over baseline applied to the register's sales.
+            excess = max(0, r["refund_pct"] - stats["refund_pct"][0]) / 100
+            flagged.append({
+                "register": r["register"], "cashier": r["cashier"], "risk": risk,
+                "reasons": reasons, "exposure_usd": round(excess * est_reg_sales),
+            })
+    return sorted(flagged, key=lambda f: f["risk"], reverse=True)
+
+
 def _alert(**kw):
     kw.setdefault("z", None)
     kw.setdefault("financial_impact_usd", 0)
@@ -165,6 +203,18 @@ def generate_alerts(compliance_weighting=True):
                 priority=min(100, base),
             ))
 
+    # --- Shrink / fraud: a flagged register is a high-priority integrity issue. ---
+    for f in detect_shrink():
+        alerts.append(_alert(
+            id=f"A-SHRINK-{f['register'].replace(' ', '')}",
+            type="Loss prevention", dept="Store", metric="shrink",
+            title=f"{f['register']} ({f['cashier']}) flagged for shrink risk",
+            detail="Unusual pattern: " + "; ".join(f["reasons"][:3]) + f". Est. ${f['exposure_usd']:,}/wk exposure.",
+            recommendation="Pull the register's exception report and review voids/refunds with the cashier.",
+            financial_impact_usd=f["exposure_usd"],
+            priority=min(100, 60 + round(f["risk"] / 4)),
+        ))
+
     alerts.sort(key=lambda a: a["priority"], reverse=True)
     return alerts
 
@@ -179,6 +229,10 @@ def demo():
     # Pet's stock crisis must surface as an inventory alert.
     assert any(a["metric"] == "in_stock_pct" and a["dept"] == "Pet" for a in alerts), \
         "expected a Pet inventory alert"
+
+    # Shrink detection must flag the engineered bad register (Reg 4).
+    shrink = detect_shrink()
+    assert any(f["register"] == "Reg 4" for f in shrink), "expected Reg 4 shrink flag"
 
     # The recall task must rank at or near the very top.
     top3 = [a["id"] for a in alerts[:3]]

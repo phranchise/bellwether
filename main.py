@@ -100,7 +100,51 @@ def summary():
         "top_movers": movers[:5],
         "slow_movers": [m for m in movers if m["momentum_pct"] < 0][-4:][::-1],
         "data_sources": rd.DATA_SOURCES,
+        "comms": {"emails": rd.EMAILS, "messages": rd.MESSAGES, "calendar": rd.CALENDAR},
+        "loss_prevention": analytics.detect_shrink(),
     }
+
+
+# --- Live market watch (external data via API, with a graceful fallback). ---
+_ticker_cache = {"at": 0.0, "data": None}
+
+
+@app.get("/api/ticker")
+def ticker():
+    """Quotes for retail/ag tickers. Pulls live from a public API when reachable;
+    falls back to sample values so the demo never shows a dead widget. Cached 30s."""
+    import random
+    import time
+
+    if _ticker_cache["data"] and time.time() - _ticker_cache["at"] < 30:
+        return _ticker_cache["data"]
+
+    symbols = [t["symbol"] for t in rd.TICKERS]
+    names = {t["symbol"]: t["name"] for t in rd.TICKERS}
+    out, source = [], "sample"
+    try:
+        import httpx
+        r = httpx.get("https://query1.finance.yahoo.com/v7/finance/quote",
+                      params={"symbols": ",".join(symbols)},
+                      headers={"User-Agent": "Mozilla/5.0"}, timeout=4)
+        r.raise_for_status()
+        for q in r.json()["quoteResponse"]["result"]:
+            out.append({"symbol": q["symbol"], "name": names.get(q["symbol"], q["symbol"]),
+                        "price": round(q["regularMarketPrice"], 2),
+                        "change_pct": round(q.get("regularMarketChangePercent", 0), 2)})
+        if out:
+            source = "live"
+    except Exception:  # noqa: BLE001 — fall back to sample quotes
+        out = []
+    if not out:
+        base = {"TSCO": 271.0, "DE": 412.0, "WMT": 82.0, "TGT": 148.0, "COST": 905.0}
+        for s in symbols:
+            drift = random.uniform(-1.8, 1.8)
+            out.append({"symbol": s, "name": names[s],
+                        "price": round(base[s] * (1 + drift / 100), 2), "change_pct": round(drift, 2)})
+    data = {"source": source, "quotes": out}
+    _ticker_cache.update(at=time.time(), data=data)
+    return data
 
 
 @app.post("/api/assistant")

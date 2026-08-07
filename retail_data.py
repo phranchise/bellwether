@@ -169,6 +169,58 @@ DATA_SOURCES = [
 ]
 
 
+# --- Register / cashier integrity data for shrink & fraud detection. ---
+# (register, cashier, refund_%, void_%, discount_%, no_sale_count) for the week.
+# Most registers cluster near the store norm; Reg 4 shows a classic sweethearting
+# pattern (high refunds + voids + no-sales) that the detector should flag.
+_REGISTERS = [
+    ("Reg 1", "J. Alvarez", 1.8, 0.9, 3.1, 4),
+    ("Reg 2", "M. Chen", 2.1, 1.1, 2.8, 6),
+    ("Reg 3", "K. Patel", 1.6, 0.8, 3.4, 3),
+    ("Reg 4", "T. Boone", 6.9, 4.7, 7.1, 23),   # anomaly
+    ("Reg 5", "S. Okafor", 2.4, 1.3, 3.0, 7),
+    ("Reg 6", "D. Ruiz", 1.9, 1.0, 2.6, 5),
+]
+REGISTERS = [
+    {"register": r, "cashier": c, "refund_pct": rf, "void_pct": v,
+     "discount_pct": d, "no_sale_count": ns}
+    for r, c, rf, v, d, ns in _REGISTERS
+]
+
+# --- Comms the manager would otherwise chase across Microsoft 365. Synthetic. ---
+EMAILS = [
+    {"from": "District Manager", "subject": "Fall reset audit next week",
+     "preview": "I'll be auditing Lawn & Garden resets Thursday. Have the endcap done.", "when": "8:02a", "unread": True},
+    {"from": "Vendor — Pet Nutrition", "subject": "Dog food delay update",
+     "preview": "40 lb bags delayed 7-10 days. Cap purchases at two, feature the alternate.", "when": "7:41a", "unread": True},
+    {"from": "Loss Prevention", "subject": "Weekly exception report ready",
+     "preview": "Register-level refund and void exceptions attached for your review.", "when": "Yesterday", "unread": True},
+    {"from": "HR", "subject": "Holiday labor plan due Friday",
+     "preview": "Submit your seasonal labor plan in the portal by end of week.", "when": "Yesterday", "unread": False},
+]
+MESSAGES = [
+    {"from": "Sam (Sporting Goods)", "text": "Trail cameras almost sold out, reorder?", "when": "10:58a"},
+    {"from": "Dana (Front End)", "text": "Reg 4 drawer count came up short again.", "when": "10:20a"},
+    {"from": "Miguel (Receiving)", "text": "Freight truck arrived, 2 pallets of grass seed.", "when": "7:15a"},
+]
+CALENDAR = [
+    {"time": "7:00a", "title": "Freight delivery — grass seed, feed", "kind": "Ops"},
+    {"time": "9:00a", "title": "Team huddle", "kind": "Team"},
+    {"time": "2:00p", "title": "District Manager store walk", "kind": "Visit"},
+    {"time": "4:30p", "title": "Interview — seasonal cashier", "kind": "Hiring"},
+]
+
+# --- Market watch: public tickers relevant to a farm-and-home retailer. ---
+# Used by /api/ticker, which pulls live quotes when reachable and falls back to these.
+TICKERS = [
+    {"symbol": "TSCO", "name": "Tractor Supply"},
+    {"symbol": "DE", "name": "Deere & Co"},
+    {"symbol": "WMT", "name": "Walmart"},
+    {"symbol": "TGT", "name": "Target"},
+    {"symbol": "COST", "name": "Costco"},
+]
+
+
 # ---- accessors used by analytics.py, the agent tools, and the endpoints ----
 
 def latest_index():
