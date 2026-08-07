@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retail AIOS — Store Manager</title>
+  <style>
+    /* ---- Brand tokens (ink on warm paper, teal signature) ---- */
+    :root {
+      --ink: #141414; --paper: #FAF8F4; --card: #FFFFFF;
+      --teal: #12967E; --teal-text: #0B6E5E; --stone: #6E675E; --hairline: #E7E1D7;
+      --good: #067647; --warn: #B54708; --bad: #B42318;
+      --radius: 14px; --maxw: 1120px;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #F1EEE8; --paper: #161311; --card: #201B18;
+        --teal: #2FC4A8; --teal-text: #58D0B8; --stone: #A79E92; --hairline: #2C2620;
+        --good: #4ADE80; --warn: #FBBF24; --bad: #F87171;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--paper); color: var(--ink);
+      font-family: var(--sans); line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: clamp(16px, 4vw, 32px); }
+    a { color: var(--teal-text); }
+    .mono { font-family: var(--mono); }
+    .label {
+      font-family: var(--mono); font-size: .72rem; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--stone);
+    }
+    /* focus + motion accessibility */
+    :focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 6px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+    /* ---- Header ---- */
+    header.top { border-bottom: 1px solid var(--hairline); }
+    .brandline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ap { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px;
+          background: var(--teal); color: #fff; font-weight: 800; font-size: .82rem; }
+    h1 { font-size: clamp(1.5rem, 4.5vw, 2.1rem); font-weight: 680; margin: .5rem 0 .1rem; letter-spacing: -.01em; }
+    .sub { color: var(--stone); margin: 0; }
+    .disclaimer {
+      display: inline-block; margin-top: 10px; padding: 4px 10px; border-radius: 999px;
+      background: color-mix(in srgb, var(--warn) 14%, transparent);
+      color: var(--warn); font-size: .78rem; font-weight: 600;
+      border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    }
+    h2 { font-size: 1.1rem; font-weight: 680; margin: 2rem 0 .8rem; display: flex; align-items: baseline; gap: .5rem; }
+    h2 .count { font-family: var(--mono); font-size: .8rem; color: var(--stone); font-weight: 400; }
+
+    /* ---- KPI cards ---- */
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+    .card {
+      background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius);
+      padding: 16px;
+    }
+    .kpi .value { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; margin: 4px 0 2px; }
+    .kpi .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .delta { font-family: var(--mono); font-size: .82rem; font-weight: 600; white-space: nowrap; }
+    .delta.up { color: var(--good); } .delta.down { color: var(--bad); } .delta.flat { color: var(--stone); }
+    svg.spark { display: block; width: 100%; height: 34px; margin-top: 10px; overflow: visible; }
+
+    /* ---- Alerts ---- */
+    .alerts { display: grid; gap: 12px; }
+    .alert {
+      background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius);
+      border-left: 5px solid var(--stone); padding: 14px 16px;
+    }
+    .alert.sev-critical { border-left-color: var(--bad); }
+    .alert.sev-high { border-left-color: var(--warn); }
+    .alert.sev-medium { border-left-color: var(--teal); }
+    .alert.done { opacity: .55; }
+    .alert-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .alert-title { font-weight: 650; margin: 0; }
+    .prio { font-family: var(--mono); font-size: .74rem; color: var(--stone); white-space: nowrap; }
+    .alert-detail { color: var(--ink); margin: 6px 0 4px; font-size: .93rem; }
+    .alert-rec { color: var(--stone); font-size: .88rem; margin: 4px 0 0; }
+    .impact { font-family: var(--mono); font-weight: 700; color: var(--teal-text); }
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .tag { font-size: .72rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em;
+           color: var(--stone); border: 1px solid var(--hairline); border-radius: 999px; padding: 2px 8px; }
+
+    /* ---- Buttons ---- */
+    button {
+      font-family: var(--sans); font-size: .92rem; font-weight: 600; cursor: pointer;
+      border-radius: 10px; border: 1px solid var(--hairline); background: var(--card); color: var(--ink);
+      padding: 10px 14px; min-height: 44px;
+    }
+    button.primary { background: var(--teal); color: #fff; border-color: var(--teal); }
+    button:hover { filter: brightness(.97); }
+    button[aria-pressed="true"] { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good);
+                                  border-color: color-mix(in srgb, var(--good) 40%, transparent); }
+
+    /* ---- Tasks ---- */
+    ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    ul.tasks li { display: flex; align-items: center; gap: 12px; background: var(--card);
+                  border: 1px solid var(--hairline); border-radius: 10px; padding: 10px 14px; }
+    .status { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+              padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .status.overdue { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+    .status.due { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+    .status.open { color: var(--stone); background: color-mix(in srgb, var(--stone) 14%, transparent); }
+    .task-title { flex: 1; }
+    .task-due { color: var(--stone); font-size: .82rem; font-family: var(--mono); }
+
+    /* ---- Assistant ---- */
+    .assistant { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius); padding: 16px; }
+    .ask-form { display: flex; gap: 10px; flex-wrap: wrap; }
+    .ask-form input {
+      flex: 1 1 240px; min-height: 46px; padding: 10px 14px; font-size: 1rem; color: var(--ink);
+      background: var(--paper); border: 1px solid var(--hairline); border-radius: 10px; font-family: var(--sans);
+    }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 0; }
+    .chip { font-size: .84rem; padding: 8px 12px; min-height: 40px; }
+    .answer { margin-top: 14px; padding: 14px; background: var(--paper); border: 1px solid var(--hairline);
+              border-radius: 10px; white-space: pre-wrap; }
+    .cites { margin-top: 8px; font-size: .8rem; color: var(--stone); font-family: var(--mono); }
+    details.trace { margin-top: 10px; }
+    details.trace summary { cursor: pointer; color: var(--teal-text); font-size: .85rem; }
+    .step { font-family: var(--mono); font-size: .78rem; padding: 6px 8px; border-radius: 6px; margin-top: 6px; }
+    .step.ACT { background: color-mix(in srgb, var(--warn) 12%, transparent); }
+    .step.OBSERVE { background: color-mix(in srgb, var(--teal) 12%, transparent); }
+    .step.THINK, .step.ANSWER { background: color-mix(in srgb, var(--stone) 10%, transparent); }
+    .spinner { color: var(--stone); font-size: .9rem; }
+    .skeleton { color: var(--stone); }
+    footer { margin: 3rem 0 1rem; color: var(--stone); font-size: .82rem; border-top: 1px solid var(--hairline);
+             padding-top: 1rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brandline"><span class="ap" aria-hidden="true">AP</span>
+      <span class="label">Retail AIOS · Store Manager</span></div>
+    <h1 id="store-name">Loading store…</h1>
+    <p class="sub" id="store-sub"></p>
+    <span class="disclaimer">Prototype · 100% synthetic data, not real company data</span>
+  </header>
+
+  <main>
+    <!-- What needs your attention -->
+    <section aria-labelledby="attn-h">
+      <h2 id="attn-h">What needs your attention <span class="count" id="attn-count"></span></h2>
+      <div class="alerts" id="alerts" role="list"><p class="skeleton">Analyzing store data…</p></div>
+    </section>
+
+    <!-- KPIs -->
+    <section aria-labelledby="kpi-h">
+      <h2 id="kpi-h">This week at a glance</h2>
+      <div class="grid" id="kpis"><p class="skeleton">Loading KPIs…</p></div>
+    </section>
+
+    <!-- Tasks -->
+    <section aria-labelledby="task-h">
+      <h2 id="task-h">Corporate tasks <span class="count" id="task-count"></span></h2>
+      <ul class="tasks" id="tasks"></ul>
+    </section>
+
+    <!-- Assistant -->
+    <section aria-labelledby="ai-h">
+      <h2 id="ai-h">Ask the store assistant</h2>
+      <div class="assistant">
+        <form class="ask-form" id="ask-form">
+          <label for="q" class="label" style="position:absolute;left:-9999px;">Ask a question</label>
+          <input id="q" name="q" type="text" autocomplete="off"
+                 placeholder="e.g. What needs my attention today?" />
+          <button class="primary" type="submit">Ask</button>
+        </form>
+        <div class="chips" id="chips"></div>
+        <div id="answer" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Retail AIOS — an AI operating system prototype for retail managers. Built on RAG,
+    a Google ADK agent, a data-science alerting layer, TRACE evals, and durable memory.
+    Synthetic data only.
+  </footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const fmtUsd = (n) => "$" + Math.round(n).toLocaleString();
+const esc = (s) => (s || "").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function severityOf(p) { return p >= 90 ? "critical" : p >= 60 ? "high" : "medium"; }
+
+// tiny inline sparkline from a numeric series
+function spark(series) {
+  if (!series || series.length < 2) return "";
+  const w = 100, h = 34, min = Math.min(...series), max = Math.max(...series);
+  const span = (max - min) || 1;
+  const pts = series.map((v, i) =>
+    `${(i / (series.length - 1) * w).toFixed(1)},${(h - ((v - min) / span) * h).toFixed(1)}`).join(" ");
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${pts}" fill="none" stroke="var(--teal)" stroke-width="2"
+      stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function deltaEl(pct, goodIsUp = true) {
+  const dir = pct > 0.05 ? "up" : pct < -0.05 ? "down" : "flat";
+  const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "—";
+  const good = dir === "flat" ? "flat" : ((dir === "up") === goodIsUp ? "up" : "down");
+  const word = dir === "up" ? "up" : dir === "down" ? "down" : "flat";
+  const sign = pct > 0 ? "+" : "";
+  return `<span class="delta ${good}" aria-label="${word} ${Math.abs(pct)} percent">${arrow} ${sign}${pct}%</span>`;
+}
+
+function kpiCard(label, value, deltaHtml, series) {
+  return `<div class="card kpi"><div class="label">${label}</div>
+    <div class="value">${value}</div>
+    <div class="foot">${deltaHtml || "<span></span>"}</div>${spark(series)}</div>`;
+}
+
+function renderKPIs(k, t) {
+  $("#kpis").innerHTML =
+    kpiCard("Sales vs plan", fmtUsd(k.sales_actual),
+            deltaEl(k.sales_vs_plan_pct, true), t.sales) +
+    kpiCard("Transactions", k.transactions.toLocaleString(),
+            `<span class="delta flat">avg ticket $${k.avg_ticket}</span>`, t.transactions) +
+    kpiCard("In-stock", k.in_stock_pct + "%",
+            deltaEl(+(k.in_stock_pct - 97).toFixed(1), true), t.in_stock) +
+    kpiCard("Labor vs budget", k.labor_hours_actual + " hrs",
+            deltaEl(k.labor_vs_budget_pct, false), t.labor);
+}
+
+async function ack(id, title, btn) {
+  btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    await fetch("/api/ack", { method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ alert_id: id, title }) });
+    btn.setAttribute("aria-pressed", "true"); btn.textContent = "Acknowledged ✓";
+    btn.closest(".alert").classList.add("done");
+  } catch { btn.textContent = "Retry"; btn.disabled = false; }
+}
+
+function renderAlerts(alerts) {
+  $("#attn-count").textContent = `${alerts.length} items`;
+  $("#alerts").innerHTML = alerts.map(a => {
+    const sev = severityOf(a.priority);
+    const impact = a.financial_impact_usd ? `<span class="impact">${fmtUsd(a.financial_impact_usd)}</span> impact` : "";
+    return `<div class="alert sev-${sev} ${a.acknowledged ? "done" : ""}" role="listitem">
+      <div class="alert-head">
+        <p class="alert-title">${esc(a.title)}</p>
+        <span class="prio">P${a.priority}</span>
+      </div>
+      <p class="alert-detail">${esc(a.detail)}</p>
+      <p class="alert-rec">→ ${esc(a.recommendation || "")}</p>
+      <div class="row">
+        <span class="tag">${esc(a.type)}</span>
+        ${a.dept && a.dept !== "Store" ? `<span class="tag">${esc(a.dept)}</span>` : ""}
+        <span>${impact}</span>
+        <button class="ack" aria-pressed="${a.acknowledged ? "true" : "false"}"
+          ${a.acknowledged ? "disabled" : ""} data-id="${a.id}" data-title="${esc(a.title)}">
+          ${a.acknowledged ? "Acknowledged ✓" : "Acknowledge"}</button>
+      </div></div>`;
+  }).join("");
+  document.querySelectorAll("button.ack:not([disabled])").forEach(btn =>
+    btn.addEventListener("click", () => ack(btn.dataset.id, btn.dataset.title, btn)));
+}
+
+function renderTasks(tasks) {
+  $("#task-count").textContent = `${tasks.length}`;
+  const cls = (s) => s === "overdue" ? "overdue" : s === "due today" ? "due" : "open";
+  $("#tasks").innerHTML = tasks.map(t =>
+    `<li><span class="status ${cls(t.status)}">${t.status}</span>
+      <span class="task-title">${esc(t.title)}</span>
+      <span class="task-due">due ${t.due}</span></li>`).join("");
+}
+
+async function loadSummary() {
+  try {
+    const d = await (await fetch("/api/summary")).json();
+    $("#store-name").textContent = d.store.name;
+    $("#store-sub").textContent = `${d.store.location} · week ending ${d.kpis.week_ending} · manager ${d.store.manager}`;
+    renderAlerts(d.alerts);
+    renderKPIs(d.kpis, d.trends);
+    renderTasks(d.tasks);
+  } catch (e) {
+    $("#alerts").innerHTML = `<p class="skeleton">Couldn't load store data. Refresh to retry.</p>`;
+  }
+}
+
+// ---- Assistant ----
+const EXAMPLES = [
+  "What needs my attention today?",
+  "What's our policy on markdowns above 15%?",
+  "How are Pet sales tracking?",
+  "What do I do about a product recall?",
+];
+function renderChips() {
+  $("#chips").innerHTML = EXAMPLES.map((q, i) =>
+    `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
+  document.querySelectorAll(".chip").forEach(b =>
+    b.addEventListener("click", () => { $("#q").value = b.dataset.q; askNow(b.dataset.q); }));
+}
+function stepLine(s) {
+  const label = { THINK: "🧠 think", ACT: "⚡ act", OBSERVE: "👀 observe", ANSWER: "✅ answer" }[s.step] || s.step;
+  const body = s.tool ? `${s.tool}(${Object.entries(s.args || {}).map(([k,v]) => k+"="+JSON.stringify(v)).join(", ")})`
+                      : (s.text || "").slice(0, 160);
+  return `<div class="step ${s.step}">${label} — ${esc(body)}</div>`;
+}
+async function askNow(q) {
+  const box = $("#answer");
+  box.innerHTML = `<p class="spinner" role="status">Thinking… the assistant is planning and using tools.</p>`;
+  try {
+    const d = await (await fetch("/api/assistant", { method: "POST",
+      headers: {"Content-Type":"application/json"}, body: JSON.stringify({ question: q }) })).json();
+    const cites = (d.citations || []).length ? `<div class="cites">📎 grounded in: ${d.citations.map(esc).join(", ")}</div>` : "";
+    const trace = (d.trace || []).length
+      ? `<details class="trace"><summary>Show the agent's reasoning (${d.tool_calls} tool call${d.tool_calls===1?"":"s"})</summary>
+         ${d.trace.map(stepLine).join("")}</details>` : "";
+    box.innerHTML = `<div class="answer">${esc(d.answer)}</div>${cites}${trace}`;
+  } catch {
+    box.innerHTML = `<p class="spinner">Couldn't reach the assistant. Try again.</p>`;
+  }
+}
+$("#ask-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const q = $("#q").value.trim();
+  if (q) askNow(q);
+});
+
+renderChips();
+loadSummary();
+</script>
+</body>
+</html>

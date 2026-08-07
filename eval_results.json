@@ -1,0 +1,175 @@
+{
+  "generated_at": "2026-08-07 00:01:26",
+  "summary": {
+    "cases": 8,
+    "assertions": 8,
+    "passed": 8,
+    "failed": 0,
+    "pass_rate": 1.0
+  },
+  "categories": [
+    {
+      "id": "INPUT_VALIDATED",
+      "description": "Empty or blank questions are rejected, not answered",
+      "checked": 2,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    {
+      "id": "SCHEMA_VALID",
+      "description": "API responses contain all required fields",
+      "checked": 1,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    {
+      "id": "ANOMALY_DETECTION",
+      "description": "A real KPI break is flagged as an anomaly",
+      "checked": 1,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    {
+      "id": "ALERT_PRIORITIZATION",
+      "description": "A safety recall is ranked above minor sales misses",
+      "checked": 1,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    {
+      "id": "CITATION_GROUNDING",
+      "description": "Policy answers cite the ops docs they used",
+      "checked": 1,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    {
+      "id": "CORRECT_REFUSAL",
+      "description": "Questions the ops docs don't cover get no made-up citation",
+      "checked": 1,
+      "failed": 0,
+      "pass_rate": 1.0
+    },
+    {
+      "id": "NO_HALLUCINATED_NUMBERS",
+      "description": "Store figures in answers match the data",
+      "checked": 1,
+      "failed": 0,
+      "pass_rate": 1.0
+    }
+  ],
+  "traces": [
+    {
+      "id": "input-empty",
+      "endpoint": "/api/assistant",
+      "input": "''",
+      "status": 422,
+      "output": null,
+      "checks": [
+        {
+          "category": "INPUT_VALIDATED",
+          "passed": true,
+          "detail": "status=422"
+        }
+      ]
+    },
+    {
+      "id": "input-   ",
+      "endpoint": "/api/assistant",
+      "input": "'   '",
+      "status": 422,
+      "output": null,
+      "checks": [
+        {
+          "category": "INPUT_VALIDATED",
+          "passed": true,
+          "detail": "status=422"
+        }
+      ]
+    },
+    {
+      "id": "schema-summary",
+      "endpoint": "/api/summary",
+      "input": "-",
+      "status": 200,
+      "output": null,
+      "checks": [
+        {
+          "category": "SCHEMA_VALID",
+          "passed": true,
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "id": "anomaly-lg",
+      "endpoint": "analytics",
+      "input": "Lawn & Garden sales",
+      "status": 200,
+      "output": null,
+      "checks": [
+        {
+          "category": "ANOMALY_DETECTION",
+          "passed": true,
+          "detail": "z=-5.98"
+        }
+      ]
+    },
+    {
+      "id": "prio-recall",
+      "endpoint": "analytics",
+      "input": "rank of due-today recall",
+      "status": 200,
+      "output": null,
+      "checks": [
+        {
+          "category": "ALERT_PRIORITIZATION",
+          "passed": true,
+          "detail": "recall at rank 2"
+        }
+      ]
+    },
+    {
+      "id": "ground-markdown",
+      "endpoint": "/api/assistant",
+      "input": "markdown policy",
+      "status": 200,
+      "output": "The policy on markdowns states:\n\n- Managers can take up to **15% markdowns** on aged seasonal inventory without needing district approval.\n- Any markdowns above **15%**, or on regular non-seasonal stock, **require district manager sign-off**.\n- All markdowns must be logged in the pricing system on the same day. \n\nThis information is sourced from the markdown policy document (grounded_id: policy-markdowns#0).",
+      "checks": [
+        {
+          "category": "CITATION_GROUNDING",
+          "passed": true,
+          "detail": "citations=['horizon-report-summary#0', 'ops-memo-fall-reset#0', 'policy-markdowns#0']"
+        }
+      ]
+    },
+    {
+      "id": "refuse-discount",
+      "endpoint": "/api/assistant",
+      "input": "employee discount %",
+      "status": 200,
+      "output": "The operations documents do not specify the employee discount percentage.",
+      "checks": [
+        {
+          "category": "CORRECT_REFUSAL",
+          "passed": true,
+          "detail": "answer='The operations documents do not specify the employee discount percentage.'"
+        }
+      ]
+    },
+    {
+      "id": "numbers-sales",
+      "endpoint": "/api/assistant",
+      "input": "total sales vs plan",
+      "status": 200,
+      "output": "Total store sales this week are $325,134, which is 4.2% below the plan of $339,475.",
+      "checks": [
+        {
+          "category": "NO_HALLUCINATED_NUMBERS",
+          "passed": true,
+          "detail": "expected 325,134 or 4.2%"
+        }
+      ]
+    }
+  ]
+}
