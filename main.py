@@ -102,6 +102,8 @@ def summary():
         "data_sources": rd.DATA_SOURCES,
         "comms": {"emails": rd.EMAILS, "messages": rd.MESSAGES, "calendar": rd.CALENDAR},
         "loss_prevention": analytics.detect_shrink(),
+        "calendar_events": rd.CALENDAR_EVENTS,
+        "today": rd.TODAY_ISO,
     }
 
 

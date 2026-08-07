@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bellwether — the leading indicator for every store</title>
   <style>
-    /* ============ Bellwether design system ============ */
     :root {
       --brand: #243B53; --brand-soft: #EAF0F6; --brand-ink: #1B3149;
       --signal: #E0872A; --signal-ink: #9A5B12;
@@ -18,49 +17,56 @@
       --shadow: 0 1px 2px rgba(20,30,45,.04), 0 6px 20px rgba(20,30,45,.05);
     }
     @media (prefers-color-scheme: dark) {
-      :root {
-        --brand: #7FA8D9; --brand-soft: #1B2733; --brand-ink: #A9C6E6;
-        --signal: #E9A24E; --signal-ink: #E9A24E;
+      :root { --brand: #7FA8D9; --brand-soft: #1B2733; --brand-ink: #A9C6E6; --signal: #E9A24E; --signal-ink: #E9A24E;
         --paper: #0F141A; --card: #171F29; --ink: #E8EBEF; --muted: #94A0AE; --hairline: #263140;
         --good: #4ADE80; --warn: #E8B84B; --serious: #F0894E; --bad: #F2726A;
-        --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
-      }
+        --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28); }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans);
-           line-height: 1.5; -webkit-font-smoothing: antialiased; }
-    .wrap { max-width: var(--maxw); margin: 0 auto; padding: clamp(14px, 3.5vw, 30px); }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: clamp(14px, 3.5vw, 30px); padding-bottom: 90px; }
     .mono { font-family: var(--mono); }
     .label { font-family: var(--mono); font-size: .70rem; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
-    h2 { font-family: var(--serif); font-weight: 600; font-size: 1.25rem; margin: 2.2rem 0 .9rem; letter-spacing: -.01em; }
+    h2 { font-family: var(--serif); font-weight: 600; font-size: 1.25rem; margin: 1.4rem 0 .9rem; letter-spacing: -.01em; }
+    h2:first-child { margin-top: .4rem; }
     h2 .count { font-family: var(--mono); font-size: .72rem; color: var(--muted); font-weight: 400; letter-spacing: .08em; }
     :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 
-    /* Top bar */
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px;
-              padding-bottom: 14px; border-bottom: 1px solid var(--hairline); flex-wrap: wrap; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; flex-wrap: wrap; }
     .brand { display: flex; align-items: center; gap: 10px; }
     .mark { width: 30px; height: 30px; border-radius: 9px; background: var(--brand); position: relative; flex: none; }
-    .mark::after { content: ""; position: absolute; inset: 0; margin: auto; width: 9px; height: 9px;
-                   border-radius: 50%; background: var(--signal); top: 6px; right: 6px; left: auto; bottom: auto; }
+    .mark::after { content: ""; position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--signal); top: 6px; right: 6px; }
     .wordmark { font-family: var(--serif); font-weight: 600; font-size: 1.28rem; letter-spacing: -.01em; }
     .topmeta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .live { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: .74rem; color: var(--muted); }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 0 rgba(46,125,91,.5); animation: pulse 2.4s infinite; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); animation: pulse 2.4s infinite; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(46,125,91,.45); } 70% { box-shadow: 0 0 0 7px rgba(46,125,91,0); } 100% { box-shadow: 0 0 0 0 rgba(46,125,91,0); } }
     .chip-sample { font-family: var(--mono); font-size: .68rem; letter-spacing: .06em; color: var(--signal-ink);
-                   border: 1px solid color-mix(in srgb, var(--signal) 40%, transparent);
-                   background: color-mix(in srgb, var(--signal) 12%, transparent); padding: 3px 9px; border-radius: 999px; }
+                   border: 1px solid color-mix(in srgb, var(--signal) 40%, transparent); background: color-mix(in srgb, var(--signal) 12%, transparent); padding: 3px 9px; border-radius: 999px; }
 
-    /* Hero headline (the prescriptive "what to do next") */
-    .hero { margin: 22px 0 6px; }
+    /* Sticky nav */
+    nav.tabs { position: sticky; top: 0; z-index: 10; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+               background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(8px);
+               border-bottom: 1px solid var(--hairline); padding: 8px 0; margin: 0 0 6px; }
+    nav.tabs::-webkit-scrollbar { display: none; }
+    nav.tabs button { flex: none; font-family: var(--sans); font-weight: 600; font-size: .9rem; cursor: pointer; color: var(--muted);
+                      background: none; border: none; border-radius: 999px; padding: 8px 15px; min-height: 40px; display: inline-flex; align-items: center; gap: 7px; }
+    nav.tabs button .ic { font-size: 1rem; }
+    nav.tabs button[aria-current="true"] { color: #fff; background: var(--brand); }
+    @media (prefers-color-scheme: dark) { nav.tabs button[aria-current="true"] { color: #0F141A; } }
+    nav.tabs button .pip { font-family: var(--mono); font-size: .64rem; font-weight: 700; background: var(--signal); color: #fff; border-radius: 999px; padding: 0 6px; }
+
+    .view { display: none; animation: fade .18s ease; }
+    .view.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* Hero */
+    .hero { margin: 14px 0 6px; }
     .hero .greet { color: var(--muted); font-size: .95rem; }
-    .hero .headline { font-family: var(--serif); font-size: clamp(1.5rem, 4.4vw, 2.15rem); line-height: 1.18;
-                      letter-spacing: -.015em; margin: 4px 0 0; max-width: 24ch; }
+    .hero .headline { font-family: var(--serif); font-size: clamp(1.45rem, 4.2vw, 2.05rem); line-height: 1.18; letter-spacing: -.015em; margin: 4px 0 0; max-width: 26ch; }
     .hero .headline .hl { color: var(--brand); }
 
-    /* Cards + grids */
     .grid { display: grid; gap: 14px; }
     .kpis { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
     .card { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius); box-shadow: var(--shadow); }
@@ -71,222 +77,198 @@
     .delta.up { color: var(--good); } .delta.down { color: var(--bad); } .delta.flat { color: var(--muted); }
     svg.spark { display: block; width: 100%; height: 32px; margin-top: 10px; overflow: visible; }
 
-    /* Alerts */
-    .alerts { display: grid; gap: 12px; }
-    .alert { background: var(--card); border: 1px solid var(--hairline); border-left: 5px solid var(--muted);
-             border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px 17px; }
-    .alert.sev-critical { border-left-color: var(--bad); } .alert.sev-high { border-left-color: var(--serious); }
-    .alert.sev-medium { border-left-color: var(--signal); }
-    .alert.done { opacity: .5; }
-    .alert-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .alert-title { font-weight: 650; margin: 0; font-size: 1.02rem; }
-    .conf { font-family: var(--mono); font-size: .68rem; color: var(--muted); white-space: nowrap; display: inline-flex; gap: 5px; align-items: center; }
-    .conf .bar { width: 34px; height: 5px; border-radius: 3px; background: var(--hairline); overflow: hidden; }
-    .conf .bar i { display: block; height: 100%; background: var(--brand); }
-    .alert-detail { margin: 7px 0 2px; font-size: .93rem; }
-    .alert-rec { color: var(--muted); font-size: .88rem; margin: 4px 0 0; }
-    .impact { font-family: var(--mono); font-weight: 700; color: var(--signal-ink); }
-    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
-    .tag { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
-           border: 1px solid var(--hairline); border-radius: 999px; padding: 3px 9px; }
-    .showall { background: none; border: none; color: var(--brand); font-weight: 600; cursor: pointer; font-size: .9rem; padding: 6px 0; }
-
-    /* Buttons */
-    button { font-family: var(--sans); font-size: .9rem; font-weight: 600; cursor: pointer; border-radius: 10px;
-             border: 1px solid var(--hairline); background: var(--card); color: var(--ink); padding: 9px 14px; min-height: 42px; }
-    button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
-    @media (prefers-color-scheme: dark) { button.primary { color: #0F141A; } }
-    button:hover { filter: brightness(.97); }
-    button[aria-pressed="true"] { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good);
-                                  border-color: color-mix(in srgb, var(--good) 40%, transparent); }
-
-    /* Selling now — product board */
-    .board { display: grid; gap: 20px; grid-template-columns: 1fr; }
-    @media (min-width: 760px) { .board { grid-template-columns: 3fr 2fr; } }
-    .plist { display: grid; gap: 9px; }
-    .product { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--hairline);
-               border-radius: 12px; padding: 10px 13px; box-shadow: var(--shadow); }
-    .thumb { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; font-size: 1.35rem; flex: none;
-             background: var(--brand-soft); }
-    .pname { flex: 1; min-width: 0; }
-    .pname .n { font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pname .d { color: var(--muted); font-size: .78rem; }
-    .pfig { text-align: right; white-space: nowrap; }
-    .pfig .s { font-family: var(--mono); font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums; }
-    .mo { font-family: var(--mono); font-size: .82rem; font-weight: 700; }
-    .mo.up { color: var(--good); } .mo.down { color: var(--bad); }
-
-    /* Department chart (diverging vs-plan bars) */
-    .chart { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
-    .drow { display: grid; grid-template-columns: 120px 1fr 62px; align-items: center; gap: 10px; padding: 5px 0; }
-    .dname { font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .track { position: relative; height: 20px; background: linear-gradient(var(--hairline),var(--hairline)) center/100% 1px no-repeat; }
-    .track .center { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--muted); opacity: .5; }
-    .track .fill { position: absolute; top: 3px; height: 14px; border-radius: 4px; }
-    .track .fill.over { left: 50%; background: var(--good); }
-    .track .fill.under { right: 50%; background: var(--bad); }
-    .dval { font-family: var(--mono); font-size: .82rem; text-align: right; font-variant-numeric: tabular-nums; }
-    .dval.over { color: var(--good); } .dval.under { color: var(--bad); }
-
-    /* Tasks */
-    ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-    ul.tasks li { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--hairline);
-                  border-radius: 11px; padding: 10px 14px; box-shadow: var(--shadow); }
-    .status { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-    .status.overdue { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
-    .status.due { color: var(--serious); background: color-mix(in srgb, var(--serious) 13%, transparent); }
-    .status.open { color: var(--muted); background: color-mix(in srgb, var(--muted) 13%, transparent); }
-    .task-title { flex: 1; font-size: .93rem; }
-    .task-due { color: var(--muted); font-size: .8rem; font-family: var(--mono); }
-
-    /* Assistant */
-    .assistant { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius); box-shadow: var(--shadow); padding: 17px; }
-    .ask-form { display: flex; gap: 10px; flex-wrap: wrap; }
-    .ask-form input { flex: 1 1 240px; min-height: 46px; padding: 10px 14px; font-size: 1rem; color: var(--ink);
-                      background: var(--paper); border: 1px solid var(--hairline); border-radius: 11px; font-family: var(--sans); }
-    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 0; }
-    .chip { font-size: .84rem; padding: 8px 12px; min-height: 38px; border-radius: 999px; }
-    .answer { margin-top: 14px; padding: 14px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 11px; white-space: pre-wrap; }
-    .cites { margin-top: 8px; font-size: .78rem; color: var(--muted); font-family: var(--mono); }
-    details.trace { margin-top: 10px; } details.trace summary { cursor: pointer; color: var(--brand); font-size: .85rem; }
-    .step { font-family: var(--mono); font-size: .77rem; padding: 6px 9px; border-radius: 7px; margin-top: 6px; }
-    .step.ACT { background: color-mix(in srgb, var(--signal) 13%, transparent); }
-    .step.OBSERVE { background: color-mix(in srgb, var(--brand) 12%, transparent); }
-    .step.THINK, .step.ANSWER { background: color-mix(in srgb, var(--muted) 11%, transparent); }
-    .spinner { color: var(--muted); font-size: .9rem; }
-
-    /* Connected sources */
-    .sources { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-    .src { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--hairline);
-           border-radius: 12px; padding: 11px 13px; box-shadow: var(--shadow); }
-    .src .via { font-family: var(--mono); font-size: .62rem; letter-spacing: .08em; padding: 2px 6px; border-radius: 5px;
-                background: var(--brand-soft); color: var(--brand-ink); }
-    .src .n { font-weight: 600; font-size: .9rem; } .src .k { color: var(--muted); font-size: .76rem; }
-    /* Market ticker */
     .ticker { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 2px; scrollbar-width: none; }
     .ticker::-webkit-scrollbar { display: none; }
-    .tk { display: inline-flex; align-items: baseline; gap: 7px; flex: none; background: var(--card);
-          border: 1px solid var(--hairline); border-radius: 999px; padding: 6px 13px; box-shadow: var(--shadow); }
+    .tk { display: inline-flex; align-items: baseline; gap: 7px; flex: none; background: var(--card); border: 1px solid var(--hairline); border-radius: 999px; padding: 6px 13px; box-shadow: var(--shadow); }
     .tk .sym { font-family: var(--mono); font-weight: 700; font-size: .82rem; }
     .tk .px { font-family: var(--mono); font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
     .tk .ch { font-family: var(--mono); font-size: .78rem; font-weight: 600; }
     .tk .ch.up { color: var(--good); } .tk .ch.down { color: var(--bad); }
     .tk-src { font-family: var(--mono); font-size: .64rem; color: var(--muted); align-self: center; padding-left: 4px; white-space: nowrap; }
 
-    /* Loss prevention */
-    .lp { background: var(--card); border: 1px solid var(--hairline); border-left: 5px solid var(--bad);
-          border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px 17px; }
+    .alerts { display: grid; gap: 12px; }
+    .alert { background: var(--card); border: 1px solid var(--hairline); border-left: 5px solid var(--muted); border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px 17px; }
+    .alert.sev-critical { border-left-color: var(--bad); } .alert.sev-high { border-left-color: var(--serious); } .alert.sev-medium { border-left-color: var(--signal); }
+    .alert.done { opacity: .5; }
+    .alert-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .alert-title { font-weight: 650; margin: 0; font-size: 1.02rem; }
+    .conf { font-family: var(--mono); font-size: .68rem; color: var(--muted); white-space: nowrap; display: inline-flex; gap: 5px; align-items: center; }
+    .conf .bar { width: 34px; height: 5px; border-radius: 3px; background: var(--hairline); overflow: hidden; }
+    .conf .bar i { display: block; height: 100%; background: var(--brand); }
+    .alert-detail { margin: 7px 0 2px; font-size: .93rem; } .alert-rec { color: var(--muted); font-size: .88rem; margin: 4px 0 0; }
+    .impact { font-family: var(--mono); font-weight: 700; color: var(--signal-ink); }
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
+    .tag { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); border: 1px solid var(--hairline); border-radius: 999px; padding: 3px 9px; }
+    .linkbtn { background: none; border: none; color: var(--brand); font-weight: 600; cursor: pointer; font-size: .92rem; padding: 8px 0; }
+
+    button.btn { font-family: var(--sans); font-size: .9rem; font-weight: 600; cursor: pointer; border-radius: 10px; border: 1px solid var(--hairline); background: var(--card); color: var(--ink); padding: 9px 14px; min-height: 42px; }
+    button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+    @media (prefers-color-scheme: dark) { button.primary { color: #0F141A; } }
+    button.btn:hover { filter: brightness(.97); }
+    button[aria-pressed="true"] { background: color-mix(in srgb, var(--good) 15%, transparent); color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); }
+
+    .board { display: grid; gap: 20px; grid-template-columns: 1fr; }
+    @media (min-width: 760px) { .board { grid-template-columns: 3fr 2fr; } }
+    .plist { display: grid; gap: 9px; }
+    .product { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--hairline); border-radius: 12px; padding: 10px 13px; box-shadow: var(--shadow); }
+    .thumb { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; font-size: 1.35rem; flex: none; background: var(--brand-soft); }
+    .pname { flex: 1; min-width: 0; } .pname .n { font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pname .d { color: var(--muted); font-size: .78rem; }
+    .pfig { text-align: right; white-space: nowrap; } .pfig .s { font-family: var(--mono); font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums; }
+    .mo { font-family: var(--mono); font-size: .82rem; font-weight: 700; } .mo.up { color: var(--good); } .mo.down { color: var(--bad); }
+
+    .chart { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+    .drow { display: grid; grid-template-columns: 120px 1fr 62px; align-items: center; gap: 10px; padding: 5px 0; }
+    .dname { font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track { position: relative; height: 20px; background: linear-gradient(var(--hairline),var(--hairline)) center/100% 1px no-repeat; }
+    .track .center { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--muted); opacity: .5; }
+    .track .fill { position: absolute; top: 3px; height: 14px; border-radius: 4px; }
+    .track .fill.over { left: 50%; background: var(--good); } .track .fill.under { right: 50%; background: var(--bad); }
+    .dval { font-family: var(--mono); font-size: .82rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .dval.over { color: var(--good); } .dval.under { color: var(--bad); }
+
+    .lp { background: var(--card); border: 1px solid var(--hairline); border-left: 5px solid var(--bad); border-radius: var(--radius); box-shadow: var(--shadow); padding: 15px 17px; }
     .lp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .lp-title { font-weight: 650; }
-    .risk { font-family: var(--mono); font-size: .74rem; font-weight: 700; color: var(--bad);
-            background: color-mix(in srgb, var(--bad) 12%, transparent); padding: 3px 10px; border-radius: 999px; }
+    .risk { font-family: var(--mono); font-size: .74rem; font-weight: 700; color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); padding: 3px 10px; border-radius: 999px; }
     .lp-reasons { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: .87rem; }
     .lp-clear { color: var(--muted); }
 
-    /* Comms */
     .comms { display: grid; gap: 14px; grid-template-columns: 1fr; }
-    @media (min-width: 800px) { .comms { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 760px) { .comms { grid-template-columns: 1fr 1fr; } }
     .comms .card { padding: 14px 15px; }
     .comms h3 { font-family: var(--serif); font-weight: 600; font-size: 1rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
-    .badge { font-family: var(--mono); font-size: .66rem; font-weight: 700; color: #fff; background: var(--signal);
-             border-radius: 999px; padding: 1px 7px; }
-    .ci { padding: 9px 0; border-top: 1px solid var(--hairline); }
-    .ci:first-of-type { border-top: none; }
+    .badge { font-family: var(--mono); font-size: .66rem; font-weight: 700; color: #fff; background: var(--signal); border-radius: 999px; padding: 1px 7px; }
+    .ci { padding: 9px 0; border-top: 1px solid var(--hairline); } .ci:first-of-type { border-top: none; }
     .ci .top { display: flex; justify-content: space-between; gap: 8px; }
     .ci .who { font-weight: 600; font-size: .87rem; } .ci .when { color: var(--muted); font-size: .74rem; font-family: var(--mono); white-space: nowrap; }
     .ci .sub { font-size: .85rem; } .ci .prev { color: var(--muted); font-size: .8rem; }
     .ci.unread .who::before { content: "●"; color: var(--signal); font-size: .7rem; margin-right: 5px; }
-    .cal .time { font-family: var(--mono); font-size: .78rem; color: var(--brand); font-weight: 600; }
 
+    /* Calendar */
+    .calhead { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px; }
+    .calmonth { font-family: var(--serif); font-weight: 600; font-size: 1.15rem; min-width: 190px; text-align: center; }
+    .calhead button { background: var(--card); border: 1px solid var(--hairline); border-radius: 9px; width: 40px; height: 40px; cursor: pointer; color: var(--ink); font-size: 1.1rem; }
+    .cgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .cdow { text-align: center; font-family: var(--mono); font-size: .66rem; letter-spacing: .08em; color: var(--muted); padding: 4px 0; }
+    .cell { background: var(--card); border: 1px solid var(--hairline); border-radius: 10px; min-height: 78px; padding: 6px; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 3px; overflow: hidden; color: var(--ink); font-family: var(--sans); }
+    .cell.empty { background: transparent; border: none; cursor: default; }
+    .cell .dnum { font-size: .82rem; font-weight: 600; color: var(--muted); }
+    .cell.today { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); } .cell.today .dnum { color: var(--brand); }
+    .cell.sel { background: var(--brand-soft); }
+    .cev { font-size: .66rem; line-height: 1.25; border-radius: 4px; padding: 1px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+           background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--brand-ink); }
+    .cev.deadline { background: color-mix(in srgb, var(--bad) 15%, transparent); color: var(--bad); }
+    .cev.visit { background: color-mix(in srgb, var(--signal) 16%, transparent); color: var(--signal-ink); }
+    .cmore { font-size: .62rem; color: var(--muted); font-family: var(--mono); }
+    .cdot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); display: none; }
+    @media (max-width: 620px) { .cell { min-height: 52px; } .cev { display: none; } .cmore { display: none; } .cell.has .cdot { display: block; } }
+    .agenda { margin-top: 16px; } .agenda h3 { font-family: var(--serif); font-weight: 600; margin: 0 0 8px; }
+    .ae { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--hairline); }
+    .ae .t { font-family: var(--mono); font-size: .8rem; color: var(--brand); font-weight: 600; min-width: 52px; }
+    .ae .k { margin-left: auto; font-family: var(--mono); font-size: .66rem; text-transform: uppercase; color: var(--muted); }
+
+    .assistant { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--radius); box-shadow: var(--shadow); padding: 17px; }
+    .ask-form { display: flex; gap: 10px; flex-wrap: wrap; }
+    .ask-form input { flex: 1 1 240px; min-height: 46px; padding: 10px 14px; font-size: 1rem; color: var(--ink); background: var(--paper); border: 1px solid var(--hairline); border-radius: 11px; font-family: var(--sans); }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 0; }
+    .chip { font-size: .84rem; padding: 8px 12px; min-height: 38px; border-radius: 999px; }
+    .answer { margin-top: 14px; padding: 14px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 11px; white-space: pre-wrap; }
+    .cites { margin-top: 8px; font-size: .78rem; color: var(--muted); font-family: var(--mono); }
+    details.trace { margin-top: 10px; } details.trace summary { cursor: pointer; color: var(--brand); font-size: .85rem; }
+    .step { font-family: var(--mono); font-size: .77rem; padding: 6px 9px; border-radius: 7px; margin-top: 6px; }
+    .step.ACT { background: color-mix(in srgb, var(--signal) 13%, transparent); } .step.OBSERVE { background: color-mix(in srgb, var(--brand) 12%, transparent); } .step.THINK, .step.ANSWER { background: color-mix(in srgb, var(--muted) 11%, transparent); }
+    .spinner { color: var(--muted); font-size: .9rem; }
+
+    .sources { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .src { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--hairline); border-radius: 12px; padding: 11px 13px; box-shadow: var(--shadow); }
+    .src .via { font-family: var(--mono); font-size: .62rem; letter-spacing: .08em; padding: 2px 6px; border-radius: 5px; background: var(--brand-soft); color: var(--brand-ink); }
+    .src .n { font-weight: 600; font-size: .9rem; } .src .k { color: var(--muted); font-size: .76rem; }
     .skeleton { color: var(--muted); }
-    footer { margin: 3rem 0 1rem; color: var(--muted); font-size: .82rem; border-top: 1px solid var(--hairline); padding-top: 1rem; }
-    .tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--paper); font-family: var(--mono);
-               font-size: .74rem; padding: 6px 9px; border-radius: 7px; opacity: 0; transition: opacity .12s; z-index: 20; white-space: nowrap; }
+    footer { margin: 2.5rem 0 1rem; color: var(--muted); font-size: .82rem; border-top: 1px solid var(--hairline); padding-top: 1rem; }
+    .tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: .74rem; padding: 6px 9px; border-radius: 7px; opacity: 0; transition: opacity .12s; z-index: 30; white-space: nowrap; }
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
-    <div class="brand"><span class="mark" aria-hidden="true"></span>
-      <span class="wordmark">Bellwether</span></div>
+    <div class="brand"><span class="mark" aria-hidden="true"></span><span class="wordmark">Bellwether</span></div>
     <div class="topmeta">
       <span class="live"><span class="dot" aria-hidden="true"></span><span id="clock">live</span></span>
-      <span class="chip-sample" title="This prototype runs on synthetic data">SAMPLE DATA</span>
+      <span class="chip-sample" title="Prototype on synthetic data">SAMPLE DATA</span>
     </div>
   </div>
 
-  <div class="ticker" id="ticker" aria-label="Market watch"></div>
-
-  <header class="hero">
-    <div class="greet" id="greet">Good day</div>
-    <p class="headline" id="headline">Reading your store…</p>
-  </header>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button data-view="home" aria-current="true"><span class="ic">🏠</span>Home</button>
+    <button data-view="sales"><span class="ic">📈</span>Sales</button>
+    <button data-view="alerts"><span class="ic">⚠️</span>Alerts<span class="pip" id="pip-alerts" hidden></span></button>
+    <button data-view="calendar"><span class="ic">📅</span>Calendar</button>
+    <button data-view="inbox"><span class="ic">📥</span>Inbox<span class="pip" id="pip-inbox" hidden></span></button>
+    <button data-view="ask"><span class="ic">✨</span>Ask</button>
+  </nav>
 
   <main>
-    <section aria-labelledby="kpi-h">
-      <h2 id="kpi-h">This week at a glance</h2>
-      <div class="grid kpis" id="kpis"><p class="skeleton">Loading KPIs…</p></div>
+    <!-- HOME -->
+    <section class="view active" id="view-home" aria-label="Home">
+      <div class="ticker" id="ticker" aria-label="Market watch"></div>
+      <div class="hero"><div class="greet" id="greet">Good day</div><p class="headline" id="headline">Reading your store…</p></div>
+      <h2>This week at a glance</h2>
+      <div class="grid kpis" id="kpis"><p class="skeleton">Loading…</p></div>
+      <h2>Top priorities <span class="count">most urgent first</span></h2>
+      <div class="alerts" id="home-alerts"></div>
+      <button class="linkbtn" data-goto="alerts">View all alerts →</button>
     </section>
 
-    <section aria-labelledby="attn-h">
-      <h2 id="attn-h">Needs your attention <span class="count" id="attn-count"></span></h2>
-      <div class="alerts" id="alerts" role="list"><p class="skeleton">Analyzing…</p></div>
-      <button class="showall" id="showall" hidden>Show all alerts</button>
-    </section>
-
-    <section aria-labelledby="sell-h">
-      <h2 id="sell-h">Selling right now <span class="count">live · units this week vs last</span></h2>
+    <!-- SALES -->
+    <section class="view" id="view-sales" aria-label="Sales">
+      <h2>Selling right now <span class="count">live · units this week vs last</span></h2>
       <div class="board">
-        <div>
-          <div class="label" style="margin-bottom:8px">Top movers ▲</div>
-          <div class="plist" id="movers"></div>
-        </div>
-        <div>
-          <div class="label" style="margin-bottom:8px">Watch — slowing ▼</div>
-          <div class="plist" id="slow"></div>
-        </div>
+        <div><div class="label" style="margin-bottom:8px">Top movers ▲</div><div class="plist" id="movers"></div></div>
+        <div><div class="label" style="margin-bottom:8px">Watch — slowing ▼</div><div class="plist" id="slow"></div></div>
       </div>
-    </section>
-
-    <section aria-labelledby="lp-h">
-      <h2 id="lp-h">Loss prevention <span class="count">register anomaly detection</span></h2>
-      <div id="lp"></div>
-    </section>
-
-    <section aria-labelledby="dept-h">
-      <h2 id="dept-h">Department performance <span class="count">sales vs plan this week</span></h2>
+      <h2>Department performance <span class="count">sales vs plan this week</span></h2>
       <div class="chart" id="chart"></div>
     </section>
 
-    <section aria-labelledby="comms-h">
-      <h2 id="comms-h">Your day <span class="count">inbox · messages · schedule</span></h2>
+    <!-- ALERTS -->
+    <section class="view" id="view-alerts" aria-label="Alerts">
+      <h2>Needs your attention <span class="count" id="attn-count"></span></h2>
+      <div class="alerts" id="alerts"></div>
+      <h2>Loss prevention <span class="count">register anomaly detection</span></h2>
+      <div id="lp"></div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="view" id="view-calendar" aria-label="Calendar">
+      <h2>Calendar</h2>
+      <div class="chart"><div id="cal"></div><div class="agenda" id="agenda"></div></div>
+    </section>
+
+    <!-- INBOX -->
+    <section class="view" id="view-inbox" aria-label="Inbox">
+      <h2>Your day <span class="count">inbox · messages</span></h2>
       <div class="comms" id="comms"></div>
     </section>
 
-    <section aria-labelledby="ai-h">
-      <h2 id="ai-h">Ask Bellwether</h2>
+    <!-- ASK -->
+    <section class="view" id="view-ask" aria-label="Ask Bellwether">
+      <h2>Ask Bellwether</h2>
       <div class="assistant">
         <form class="ask-form" id="ask-form">
           <label for="q" class="label" style="position:absolute;left:-9999px;">Ask a question</label>
           <input id="q" name="q" type="text" autocomplete="off" placeholder="e.g. What needs my attention today?" />
-          <button class="primary" type="submit">Ask</button>
+          <button class="btn primary" type="submit">Ask</button>
         </form>
         <div class="chips" id="chips"></div>
         <div id="answer" aria-live="polite"></div>
       </div>
-    </section>
-
-    <section aria-labelledby="src-h">
-      <h2 id="src-h">Connected sources <span class="count">how Bellwether unifies your data</span></h2>
+      <h2>Connected sources <span class="count">how Bellwether unifies your data</span></h2>
       <div class="sources" id="sources"></div>
     </section>
   </main>
 
-  <footer>
-    <strong>Bellwether</strong> — the leading indicator for every store. An AI operating system that unifies
-    scattered retail data via MCPs and APIs, forecasts what's coming, and tells managers what to do next.
-    Prototype with synthetic data; not connected to any real company's systems.
-  </footer>
+  <footer><strong>Bellwether</strong> — the leading indicator for every store. An AI operating system that unifies scattered
+    retail data via MCPs and APIs, forecasts what's coming, and tells managers what to do next. Prototype with synthetic data.</footer>
 </div>
 <div class="tooltip" id="tt"></div>
 
@@ -294,14 +276,20 @@
 const $ = (s) => document.querySelector(s);
 const fmtUsd = (n) => "$" + Math.round(n).toLocaleString();
 const esc = (s) => (s || "").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const ICON = { "Ranch & Farm":"🌾","Lawn & Garden":"🌱","Pet":"🐾","Sporting Goods":"🎯",
-               "Apparel":"🧥","Hardware":"🔧","Automotive":"🚗","Store":"🏬" };
+const ICON = { "Ranch & Farm":"🌾","Lawn & Garden":"🌱","Pet":"🐾","Sporting Goods":"🎯","Apparel":"🧥","Hardware":"🔧","Automotive":"🚗","Store":"🏬" };
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function clock() {
-  const t = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  $("#clock").textContent = "as of " + t;
+// ---- view routing ----
+function setView(name) {
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + name));
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.view === name ? "true" : "false"));
+  if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+  window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
 }
+document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) setView(g.dataset.goto); });
+
+function clock() { $("#clock").textContent = "as of " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
 clock(); setInterval(clock, 30000);
 
 function severityOf(p) { return p >= 90 ? "critical" : p >= 60 ? "high" : "medium"; }
@@ -309,9 +297,7 @@ function spark(series) {
   if (!series || series.length < 2) return "";
   const w = 100, h = 32, mn = Math.min(...series), mx = Math.max(...series), sp = (mx - mn) || 1;
   const pts = series.map((v, i) => `${(i/(series.length-1)*w).toFixed(1)},${(h-((v-mn)/sp)*h).toFixed(1)}`).join(" ");
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
-    <polyline points="${pts}" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linejoin="round"
-      stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
 }
 function deltaEl(pct, goodIsUp = true) {
   const dir = pct > 0.05 ? "up" : pct < -0.05 ? "down" : "flat";
@@ -322,173 +308,157 @@ function deltaEl(pct, goodIsUp = true) {
 }
 function countUp(el, target, suffix = "", money = false) {
   if (reduce) { el.textContent = money ? fmtUsd(target) : (target.toLocaleString() + suffix); return; }
-  const t0 = performance.now(), dur = 750;
+  const t0 = performance.now(), dur = 700;
   const step = (t) => { const k = Math.min(1, (t - t0) / dur); const v = target * (1 - Math.pow(1 - k, 3));
-    el.textContent = money ? fmtUsd(v) : (Math.round(v).toLocaleString() + suffix);
-    if (k < 1) requestAnimationFrame(step); };
+    el.textContent = money ? fmtUsd(v) : (Math.round(v).toLocaleString() + suffix); if (k < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
 
 function renderKPIs(k, t) {
   const cards = [
     { l: "Sales vs plan", v: k.sales_actual, money: true, d: deltaEl(k.sales_vs_plan_pct, true), s: t.sales },
-    { l: "Transactions", v: k.transactions, suffix: "", d: `<span class="delta flat">avg ticket $${k.avg_ticket}</span>`, s: t.transactions },
+    { l: "Transactions", v: k.transactions, d: `<span class="delta flat">avg ticket $${k.avg_ticket}</span>`, s: t.transactions },
     { l: "In-stock", v: k.in_stock_pct, suffix: "%", d: deltaEl(+(k.in_stock_pct - 97).toFixed(1), true), s: t.in_stock },
     { l: "Labor vs budget", v: k.labor_hours_actual, suffix: " hrs", d: deltaEl(k.labor_vs_budget_pct, false), s: t.labor },
   ];
-  $("#kpis").innerHTML = cards.map((c, i) =>
-    `<div class="card kpi"><div class="label">${c.l}</div>
-      <div class="value" id="kv${i}">—</div>
-      <div class="foot">${c.d}<span></span></div>${spark(c.s)}</div>`).join("");
+  $("#kpis").innerHTML = cards.map((c, i) => `<div class="card kpi"><div class="label">${c.l}</div><div class="value" id="kv${i}">—</div><div class="foot">${c.d}<span></span></div>${spark(c.s)}</div>`).join("");
   cards.forEach((c, i) => countUp($("#kv" + i), c.v, c.suffix || "", !!c.money));
 }
 
-let ALL_ALERTS = [], showingAll = false;
-function renderAlerts() {
-  const list = showingAll ? ALL_ALERTS : ALL_ALERTS.slice(0, 3);
-  $("#attn-count").textContent = `${ALL_ALERTS.length} items`;
-  $("#alerts").innerHTML = list.map(a => {
-    const sev = severityOf(a.priority), conf = Math.min(99, 55 + Math.round(a.priority / 3));
-    const impact = a.financial_impact_usd ? `<span class="impact">${fmtUsd(a.financial_impact_usd)}</span> impact` : "";
-    return `<div class="alert sev-${sev} ${a.acknowledged ? "done" : ""}" role="listitem">
-      <div class="alert-head"><p class="alert-title">${esc(a.title)}</p>
-        <span class="conf" title="Model confidence">conf <span class="bar"><i style="width:${conf}%"></i></span>${conf}%</span></div>
-      <p class="alert-detail">${esc(a.detail)}</p>
-      <p class="alert-rec">→ ${esc(a.recommendation || "")}</p>
-      <div class="row"><span class="tag">${esc(a.type)}</span>
-        ${a.dept && a.dept !== "Store" ? `<span class="tag">${esc(a.dept)}</span>` : ""}
-        <span>${impact}</span>
-        <button class="ack" aria-pressed="${a.acknowledged}" ${a.acknowledged ? "disabled" : ""}
-          data-id="${a.id}" data-title="${esc(a.title)}">${a.acknowledged ? "Acknowledged ✓" : "Acknowledge"}</button>
-      </div></div>`;
-  }).join("");
-  $("#showall").hidden = ALL_ALERTS.length <= 3;
-  $("#showall").textContent = showingAll ? "Show fewer" : `Show all ${ALL_ALERTS.length} alerts`;
-  document.querySelectorAll("button.ack:not([disabled])").forEach(b =>
-    b.addEventListener("click", () => ackAlert(b.dataset.id, b.dataset.title, b)));
+let ALL_ALERTS = [];
+function alertCard(a) {
+  const sev = severityOf(a.priority), conf = Math.min(99, 55 + Math.round(a.priority / 3));
+  const impact = a.financial_impact_usd ? `<span class="impact">${fmtUsd(a.financial_impact_usd)}</span> impact` : "";
+  return `<div class="alert sev-${sev} ${a.acknowledged ? "done" : ""}" role="listitem">
+    <div class="alert-head"><p class="alert-title">${esc(a.title)}</p>
+      <span class="conf" title="Model confidence">conf <span class="bar"><i style="width:${conf}%"></i></span>${conf}%</span></div>
+    <p class="alert-detail">${esc(a.detail)}</p><p class="alert-rec">→ ${esc(a.recommendation || "")}</p>
+    <div class="row"><span class="tag">${esc(a.type)}</span>${a.dept && a.dept !== "Store" ? `<span class="tag">${esc(a.dept)}</span>` : ""}<span>${impact}</span>
+      <button class="btn ack" aria-pressed="${a.acknowledged}" ${a.acknowledged ? "disabled" : ""} data-id="${a.id}" data-title="${esc(a.title)}">${a.acknowledged ? "Acknowledged ✓" : "Acknowledge"}</button>
+    </div></div>`;
 }
-$("#showall").addEventListener("click", () => { showingAll = !showingAll; renderAlerts(); });
-async function ackAlert(id, title, btn) {
-  btn.disabled = true; btn.textContent = "Saving…";
+function bindAcks() {
+  document.querySelectorAll("button.ack:not([disabled])").forEach(b => b.addEventListener("click", () => ackAlert(b.dataset.id, b.dataset.title)));
+}
+function renderAlerts() {
+  $("#attn-count").textContent = `${ALL_ALERTS.length} items`;
+  $("#alerts").innerHTML = ALL_ALERTS.map(alertCard).join("");
+  $("#home-alerts").innerHTML = ALL_ALERTS.slice(0, 3).map(alertCard).join("");
+  const open = ALL_ALERTS.filter(a => !a.acknowledged).length;
+  const pip = $("#pip-alerts"); pip.hidden = !open; pip.textContent = open;
+  bindAcks();
+}
+async function ackAlert(id, title) {
   try {
     await fetch("/api/ack", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ alert_id: id, title }) });
     const a = ALL_ALERTS.find(x => x.id === id); if (a) a.acknowledged = true; renderAlerts();
-  } catch { btn.textContent = "Retry"; btn.disabled = false; }
+  } catch {}
 }
 
 function productRow(p) {
   const up = p.momentum_pct >= 0;
   return `<div class="product"><div class="thumb" aria-hidden="true">${ICON[p.department] || "📦"}</div>
     <div class="pname"><div class="n">${esc(p.name)}</div><div class="d">${esc(p.department)}</div></div>
-    <div class="pfig"><div class="s">${fmtUsd(p.sales)}</div>
-      <div class="mo ${up ? "up" : "down"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${p.momentum_pct}%</div></div></div>`;
+    <div class="pfig"><div class="s">${fmtUsd(p.sales)}</div><div class="mo ${up ? "up" : "down"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${p.momentum_pct}%</div></div></div>`;
 }
-function renderProducts(top, slow) {
-  $("#movers").innerHTML = top.map(productRow).join("");
-  $("#slow").innerHTML = slow.map(productRow).join("");
-}
+function renderProducts(top, slow) { $("#movers").innerHTML = top.map(productRow).join(""); $("#slow").innerHTML = slow.map(productRow).join(""); }
 
+const tt = $("#tt");
+function bindTips() {
+  document.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", e => { tt.textContent = el.dataset.tip; tt.style.opacity = 1; tt.style.left = (e.clientX + 12) + "px"; tt.style.top = (e.clientY + 12) + "px"; });
+    el.addEventListener("mouseleave", () => tt.style.opacity = 0);
+  });
+}
 function renderChart(depts) {
   const maxAbs = Math.max(10, ...depts.map(d => Math.abs(d.vs_plan_pct)));
   $("#chart").innerHTML = depts.map(d => {
     const over = d.vs_plan_pct >= 0, w = Math.abs(d.vs_plan_pct) / maxAbs * 50;
-    return `<div class="drow" data-tip="${esc(d.department)}: ${fmtUsd(d.sales)} vs ${fmtUsd(d.plan)} plan">
-      <span class="dname">${esc(d.department)}</span>
-      <span class="track"><span class="center"></span>
-        <span class="fill ${over ? "over" : "under"}" style="width:${w}%"></span></span>
+    return `<div class="drow" data-tip="${esc(d.department)}: ${fmtUsd(d.sales)} vs ${fmtUsd(d.plan)} plan"><span class="dname">${esc(d.department)}</span>
+      <span class="track"><span class="center"></span><span class="fill ${over ? "over" : "under"}" style="width:${w}%"></span></span>
       <span class="dval ${over ? "over" : "under"}">${over ? "+" : ""}${d.vs_plan_pct}%</span></div>`;
   }).join("");
   bindTips();
 }
 
-// lightweight tooltip for chart rows
-const tt = $("#tt");
-function bindTips() {
-  document.querySelectorAll("[data-tip]").forEach(el => {
-    el.addEventListener("mousemove", e => { tt.textContent = el.dataset.tip; tt.style.opacity = 1;
-      tt.style.left = (e.clientX + 12) + "px"; tt.style.top = (e.clientY + 12) + "px"; });
-    el.addEventListener("mouseleave", () => tt.style.opacity = 0);
-  });
-}
-
-function renderSources(sources) {
-  $("#sources").innerHTML = sources.map(s =>
-    `<div class="src"><span class="via">${esc(s.via)}</span>
-      <div><div class="n">${esc(s.name)}</div><div class="k">${esc(s.kind)}</div></div></div>`).join("");
-}
-
-function headline(store, alerts) {
-  const h = new Date().getHours();
-  $("#greet").textContent = (h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening")
-    + `, ${store.manager} · ${store.name}, ${store.location}`;
-  const top = alerts.slice(0, 2).map(a => a.title.replace(/^[A-Za-z &]+ /, m => m)).join(", and ");
-  $("#headline").innerHTML = alerts.length
-    ? `Today: <span class="hl">${esc(alerts[0].title)}</span>${alerts[1] ? `, and ${esc(alerts[1].title.toLowerCase())}` : ""}.`
-    : "Everything's tracking to plan today.";
-}
-
 function renderLP(flagged) {
-  if (!flagged || !flagged.length) {
-    $("#lp").innerHTML = `<div class="card" style="padding:15px 17px"><span class="lp-clear">✓ No registers flagged. All transaction patterns are within the store's normal range.</span></div>`;
-    return;
-  }
-  $("#lp").innerHTML = flagged.map(f =>
-    `<div class="lp"><div class="lp-head">
-      <span class="lp-title">${esc(f.register)} — ${esc(f.cashier)}</span>
-      <span class="risk">risk ${f.risk}/100 · ${fmtUsd(f.exposure_usd)}/wk exposure</span></div>
-      <ul class="lp-reasons">${f.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
-      <p class="alert-rec">→ Pull the register's exception report and review voids/refunds with the cashier.</p></div>`).join("");
+  if (!flagged || !flagged.length) { $("#lp").innerHTML = `<div class="card" style="padding:15px 17px"><span class="lp-clear">✓ No registers flagged. All transaction patterns are within the store's normal range.</span></div>`; return; }
+  $("#lp").innerHTML = flagged.map(f => `<div class="lp"><div class="lp-head"><span class="lp-title">${esc(f.register)} — ${esc(f.cashier)}</span>
+    <span class="risk">risk ${f.risk}/100 · ${fmtUsd(f.exposure_usd)}/wk exposure</span></div>
+    <ul class="lp-reasons">${f.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+    <p class="alert-rec">→ Pull the register's exception report and review voids/refunds with the cashier.</p></div>`).join("");
 }
 
 function renderComms(c) {
   const unread = c.emails.filter(e => e.unread).length;
-  const emails = c.emails.map(e => `<div class="ci ${e.unread ? "unread" : ""}">
-    <div class="top"><span class="who">${esc(e.from)}</span><span class="when">${esc(e.when)}</span></div>
-    <div class="sub">${esc(e.subject)}</div><div class="prev">${esc(e.preview)}</div></div>`).join("");
-  const msgs = c.messages.map(m => `<div class="ci">
-    <div class="top"><span class="who">${esc(m.from)}</span><span class="when">${esc(m.when)}</span></div>
-    <div class="prev">${esc(m.text)}</div></div>`).join("");
-  const cal = c.calendar.map(e => `<div class="ci cal">
-    <div class="top"><span class="time">${esc(e.time)}</span><span class="when">${esc(e.kind)}</span></div>
-    <div class="sub">${esc(e.title)}</div></div>`).join("");
-  $("#comms").innerHTML =
-    `<div class="card"><h3>📥 Inbox ${unread ? `<span class="badge">${unread} new</span>` : ""}</h3>${emails}</div>
-     <div class="card"><h3>💬 Team messages</h3>${msgs}</div>
-     <div class="card"><h3>📅 Today</h3>${cal}</div>`;
+  const pip = $("#pip-inbox"); pip.hidden = !unread; pip.textContent = unread;
+  const emails = c.emails.map(e => `<div class="ci ${e.unread ? "unread" : ""}"><div class="top"><span class="who">${esc(e.from)}</span><span class="when">${esc(e.when)}</span></div><div class="sub">${esc(e.subject)}</div><div class="prev">${esc(e.preview)}</div></div>`).join("");
+  const msgs = c.messages.map(m => `<div class="ci"><div class="top"><span class="who">${esc(m.from)}</span><span class="when">${esc(m.when)}</span></div><div class="prev">${esc(m.text)}</div></div>`).join("");
+  $("#comms").innerHTML = `<div class="card"><h3>📥 Inbox ${unread ? `<span class="badge">${unread} new</span>` : ""}</h3>${emails}</div><div class="card"><h3>💬 Team messages</h3>${msgs}</div>`;
+}
+
+// ---- Calendar ----
+let CAL_EVENTS = [], TODAY_ISO = "", selectedDay = "", calMonth = null;
+const kindCls = k => k === "Deadline" ? "deadline" : (k === "Visit" || k === "Hiring") ? "visit" : "";
+function renderCalendar(events, todayIso) {
+  CAL_EVENTS = events; TODAY_ISO = todayIso; selectedDay = selectedDay || todayIso;
+  if (!calMonth) { const t = new Date(todayIso + "T00:00:00"); calMonth = new Date(t.getFullYear(), t.getMonth(), 1); }
+  drawMonth();
+}
+function drawMonth() {
+  const byDate = {}; CAL_EVENTS.forEach(e => (byDate[e.date] ||= []).push(e));
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const start = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate();
+  const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => `<span class="cdow">${d}</span>`).join("");
+  let cells = "";
+  for (let i = 0; i < start; i++) cells += `<div class="cell empty"></div>`;
+  for (let d = 1; d <= days; d++) {
+    const iso = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const evs = byDate[iso] || [];
+    const chips = evs.slice(0, 2).map(e => `<span class="cev ${kindCls(e.kind)}">${esc(e.title)}</span>`).join("") + (evs.length > 2 ? `<span class="cmore">+${evs.length - 2} more</span>` : "");
+    cells += `<button class="cell ${iso === TODAY_ISO ? "today" : ""} ${iso === selectedDay ? "sel" : ""} ${evs.length ? "has" : ""}" data-day="${iso}">
+      <span class="dnum">${d}</span><span class="cdot"></span>${chips}</button>`;
+  }
+  $("#cal").innerHTML = `<div class="calhead"><button id="prevm" aria-label="Previous month">‹</button><span class="calmonth">${calMonth.toLocaleString([], { month: "long", year: "numeric" })}</span><button id="nextm" aria-label="Next month">›</button></div><div class="cgrid">${dow}${cells}</div>`;
+  $("#prevm").onclick = () => { calMonth = new Date(y, m - 1, 1); drawMonth(); };
+  $("#nextm").onclick = () => { calMonth = new Date(y, m + 1, 1); drawMonth(); };
+  document.querySelectorAll(".cell[data-day]").forEach(c => c.onclick = () => { selectedDay = c.dataset.day; drawMonth(); });
+  const evs = (byDate[selectedDay] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+  const nice = new Date(selectedDay + "T00:00:00").toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+  $("#agenda").innerHTML = `<h3>${nice}${selectedDay === TODAY_ISO ? " · today" : ""}</h3>` +
+    (evs.length ? evs.map(e => `<div class="ae"><span class="t">${esc(e.time)}</span><span>${esc(e.title)}</span><span class="k">${esc(e.kind)}</span></div>`).join("") : `<p class="skeleton">Nothing scheduled.</p>`);
+}
+
+function renderSources(sources) { $("#sources").innerHTML = sources.map(s => `<div class="src"><span class="via">${esc(s.via)}</span><div><div class="n">${esc(s.name)}</div><div class="k">${esc(s.kind)}</div></div></div>`).join(""); }
+
+function headline(store, alerts) {
+  const h = new Date().getHours();
+  $("#greet").textContent = (h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening") + `, ${store.manager} · ${store.name}, ${store.location}`;
+  $("#headline").innerHTML = alerts.length ? `Today: <span class="hl">${esc(alerts[0].title)}</span>${alerts[1] ? `, and ${esc(alerts[1].title.toLowerCase())}` : ""}.` : "Everything's tracking to plan today.";
 }
 
 async function loadTicker() {
   try {
     const d = await (await fetch("/api/ticker")).json();
-    $("#ticker").innerHTML = d.quotes.map(q => {
-      const up = q.change_pct >= 0;
-      return `<span class="tk"><span class="sym">${esc(q.symbol)}</span>
-        <span class="px">${q.price.toFixed(2)}</span>
-        <span class="ch ${up ? "up" : "down"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${q.change_pct}%</span></span>`;
-    }).join("") + `<span class="tk-src">${d.source === "live" ? "● live" : "sample"}</span>`;
+    $("#ticker").innerHTML = d.quotes.map(q => { const up = q.change_pct >= 0;
+      return `<span class="tk"><span class="sym">${esc(q.symbol)}</span><span class="px">${q.price.toFixed(2)}</span><span class="ch ${up ? "up" : "down"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${q.change_pct}%</span></span>`; }).join("")
+      + `<span class="tk-src">${d.source === "live" ? "● live" : "sample"}</span>`;
   } catch { $("#ticker").innerHTML = ""; }
 }
-
 async function loadSummary() {
   try {
     const d = await (await fetch("/api/summary")).json();
     ALL_ALERTS = d.alerts;
-    headline(d.store, d.alerts);
-    renderKPIs(d.kpis, d.trends);
-    renderAlerts();
-    renderProducts(d.top_movers, d.slow_movers);
-    renderLP(d.loss_prevention);
-    renderChart(d.departments);
-    renderComms(d.comms);
-    renderSources(d.data_sources);
-  } catch (e) { $("#alerts").innerHTML = `<p class="skeleton">Couldn't load store data. Refresh to retry.</p>`; }
+    headline(d.store, d.alerts); renderKPIs(d.kpis, d.trends); renderAlerts();
+    renderProducts(d.top_movers, d.slow_movers); renderLP(d.loss_prevention);
+    renderChart(d.departments); renderComms(d.comms); renderSources(d.data_sources);
+    renderCalendar(d.calendar_events, d.today);
+  } catch (e) { $("#home-alerts").innerHTML = `<p class="skeleton">Couldn't load store data. Refresh to retry.</p>`; }
 }
 
-// ---- ambient copilot ----
-const EXAMPLES = ["What needs my attention today?", "What's our policy on markdowns above 15%?",
-                  "How are Pet sales tracking?", "What do I do about a product recall?"];
+const EXAMPLES = ["What needs my attention today?", "What's our policy on markdowns above 15%?", "Is there any fraud or shrink risk?", "What's on my schedule today?"];
 function renderChips() {
-  $("#chips").innerHTML = EXAMPLES.map(q => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
+  $("#chips").innerHTML = EXAMPLES.map(q => `<button class="btn chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
   document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { $("#q").value = b.dataset.q; askNow(b.dataset.q); }));
 }
 function stepLine(s) {
@@ -497,8 +467,7 @@ function stepLine(s) {
   return `<div class="step ${s.step}">${label} — ${esc(body)}</div>`;
 }
 async function askNow(q) {
-  const box = $("#answer");
-  box.innerHTML = `<p class="spinner" role="status">Bellwether is planning and checking the data…</p>`;
+  const box = $("#answer"); box.innerHTML = `<p class="spinner" role="status">Bellwether is planning and checking the data…</p>`;
   try {
     const d = await (await fetch("/api/assistant", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ question: q }) })).json();
     const cites = (d.citations||[]).length ? `<div class="cites">📎 grounded in: ${d.citations.map(esc).join(", ")}</div>` : "";
@@ -508,11 +477,11 @@ async function askNow(q) {
 }
 $("#ask-form").addEventListener("submit", e => { e.preventDefault(); const q = $("#q").value.trim(); if (q) askNow(q); });
 
-renderChips();
-loadSummary();
-loadTicker();
-setInterval(loadSummary, 45000);  // keep "selling right now" and alerts fresh
-setInterval(loadTicker, 30000);   // refresh market watch
+// init
+const start = location.hash.replace("#", "");
+if (["home","sales","alerts","calendar","inbox","ask"].includes(start)) setView(start);
+renderChips(); loadSummary(); loadTicker();
+setInterval(loadSummary, 45000); setInterval(loadTicker, 30000);
 </script>
 </body>
 </html>

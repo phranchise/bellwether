@@ -203,12 +203,38 @@ MESSAGES = [
     {"from": "Dana (Front End)", "text": "Reg 4 drawer count came up short again.", "when": "10:20a"},
     {"from": "Miguel (Receiving)", "text": "Freight truck arrived, 2 pallets of grass seed.", "when": "7:15a"},
 ]
-CALENDAR = [
-    {"time": "7:00a", "title": "Freight delivery — grass seed, feed", "kind": "Ops"},
-    {"time": "9:00a", "title": "Team huddle", "kind": "Team"},
-    {"time": "2:00p", "title": "District Manager store walk", "kind": "Visit"},
-    {"time": "4:30p", "title": "Interview — seasonal cashier", "kind": "Hiring"},
+TODAY_ISO = _today.isoformat()
+
+
+def _d(day):
+    return _today.replace(day=day).isoformat()
+
+
+# A month of store-manager events for the calendar view.
+CALENDAR_EVENTS = [
+    {"date": _d(3), "time": "7:00a", "title": "Freight delivery", "kind": "Ops"},
+    {"date": _d(5), "time": "—", "title": "Apply October price changes (batch 3) — due", "kind": "Deadline"},
+    {"date": TODAY_ISO, "time": "7:00a", "title": "Freight delivery — grass seed, feed", "kind": "Ops"},
+    {"date": TODAY_ISO, "time": "9:00a", "title": "Team huddle", "kind": "Team"},
+    {"date": TODAY_ISO, "time": "2:00p", "title": "District Manager store walk", "kind": "Visit"},
+    {"date": TODAY_ISO, "time": "4:30p", "title": "Interview — seasonal cashier", "kind": "Hiring"},
+    {"date": _d(12), "time": "10:00a", "title": "Lawn & Garden fall reset — due", "kind": "Deadline"},
+    {"date": _d(13), "time": "1:00p", "title": "Vendor visit — Pet Nutrition", "kind": "Vendor"},
+    {"date": _d(14), "time": "—", "title": "Payday", "kind": "Payroll"},
+    {"date": _d(14), "time": "9:00a", "title": "Q3 safety walk", "kind": "Safety"},
+    {"date": _d(15), "time": "8:00a", "title": "Fall seasonal promo starts", "kind": "Promo"},
+    {"date": _d(18), "time": "7:00a", "title": "Freight delivery", "kind": "Ops"},
+    {"date": _d(19), "time": "6:00a", "title": "Cycle count — Ranch & Farm", "kind": "Inventory"},
+    {"date": _d(21), "time": "2:00p", "title": "Manager 1:1 with DM", "kind": "Visit"},
+    {"date": _d(22), "time": "—", "title": "Holiday labor plan — due", "kind": "Deadline"},
+    {"date": _d(25), "time": "7:00a", "title": "Freight delivery", "kind": "Ops"},
+    {"date": _d(28), "time": "—", "title": "Payday", "kind": "Payroll"},
+    {"date": _d(29), "time": "10:00a", "title": "Hunting season prep — Sporting Goods", "kind": "Merch"},
 ]
+
+# Today's agenda (used by the comms panel and the agent's get_comms tool).
+CALENDAR = [{"time": e["time"], "title": e["title"], "kind": e["kind"]}
+            for e in CALENDAR_EVENTS if e["date"] == TODAY_ISO]
 
 # --- Market watch: public tickers relevant to a farm-and-home retailer. ---
 # Used by /api/ticker, which pulls live quotes when reachable and falls back to these.
