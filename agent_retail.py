@@ -30,6 +30,7 @@ load_dotenv()
 import analytics
 import clients
 import retail_data as rd
+import tracing
 
 MODEL = "gemini-2.5-flash"
 MAX_TOOL_CALLS = 8
@@ -212,12 +213,23 @@ def run_openai_agent(message: str, note: str = None):
     return "Stopped: exceeded the tool-call budget.", trace, sorted(set(citations))
 
 
+@tracing.observe(name="retail-assistant")
 def run_agent_sync(message: str, timeout: int = 120):
-    """Run the agent: ADK/Gemini first, OpenAI fallback on any failure (rate limits)."""
+    """Run the agent: ADK/Gemini first, OpenAI fallback on any failure (rate limits).
+
+    Observed as one Langfuse trace per question; the OpenAI/Gemini generations and
+    RAG embeddings nest under it. ponytail: ADK runs in a worker thread, so on the
+    Gemini path its spans may land as a sibling trace (OTel context is thread-local)
+    — propagate the context here if that nesting matters for the demo.
+    """
+    tracing.set_trace(input={"question": message})
     try:
-        return _run_gemini_sync(message, timeout)
+        answer, trace, citations = _run_gemini_sync(message, timeout)
     except Exception as e:  # noqa: BLE001 — any Gemini failure routes to OpenAI
-        return run_openai_agent(message, note=f"Gemini unavailable ({type(e).__name__}); routed to OpenAI.")
+        answer, trace, citations = run_openai_agent(
+            message, note=f"Gemini unavailable ({type(e).__name__}); routed to OpenAI.")
+    tracing.set_trace(output={"answer": answer, "citations": citations})
+    return answer, trace, citations
 
 
 if __name__ == "__main__":

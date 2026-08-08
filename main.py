@@ -25,10 +25,12 @@ load_dotenv()
 import analytics
 import memory
 import retail_data as rd
+import tracing
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    tracing.init()  # wire ADK instrumentation before any request runs (no-op if off)
     # Seed the ops-doc corpus (RAG) and the store profile (semantic memory) once,
     # idempotently. Non-fatal: the dashboard still loads if Pinecone is slow.
     try:

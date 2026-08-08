@@ -10,7 +10,12 @@ durable memory.
 """
 import os
 
-from openai import OpenAI
+try:
+    # Drop-in: auto-traces every chat + embedding call (tokens, cost, latency)
+    # into Langfuse. No-ops when Langfuse isn't configured. See tracing.py.
+    from langfuse.openai import OpenAI
+except ImportError:  # langfuse optional — plain client when it's not installed
+    from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
 
 CHAT_MODEL = "gpt-4o-mini"
