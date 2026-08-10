@@ -14,11 +14,12 @@ and snow inches. Coefficients are expert priors per department.
 
   python weather.py     # self-check on the synthetic forecast
 
-Forecast source: a deterministic synthetic forecast by default (an early-season
-cold front), so the demo always shows the feature's value and stays consistent
-with the rest of the store's synthetic, pinned data. Set WEATHER_LIVE=1 to pull
-the real Open-Meteo forecast (free, no API key) for the store's location instead
-— same live-or-sample pattern as /api/ticker.
+Forecast source: the live Open-Meteo forecast by default (free, no API key), so
+the outlook always tracks the real date and the store's location. If the network
+is unavailable it falls back to a deterministic synthetic forecast (an early-
+season cold front) so the demo still shows the feature's value. Set
+WEATHER_SYNTHETIC=1 to force that demo forecast — same live-or-sample pattern as
+/api/ticker.
 """
 import os
 import time
@@ -90,37 +91,42 @@ def _synthetic_forecast():
     return {"source": "sample", "days": days}
 
 
+def _live_forecast():
+    """Real 7-day daily forecast from Open-Meteo (free, no API key), for the
+    store's location and the actual current date. Returns None on any network or
+    parse error so the caller can fall back to the synthetic forecast. Stdlib
+    only — same spirit as the rest of the module."""
+    import json
+    import urllib.parse
+    import urllib.request
+    url = "https://api.open-meteo.com/v1/forecast?" + urllib.parse.urlencode({
+        "latitude": LAT, "longitude": LON,
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,weathercode",
+        "temperature_unit": "fahrenheit", "precipitation_unit": "inch",
+        "timezone": "America/Chicago", "forecast_days": 7})
+    try:
+        with urllib.request.urlopen(url, timeout=4) as resp:
+            d = json.load(resp)["daily"]
+    except Exception:  # noqa: BLE001 — any error falls back to the synthetic forecast
+        return None
+    days = []
+    for i in range(len(d["time"])):
+        label, icon = _wmo(d["weathercode"][i])
+        days.append({"date": d["time"][i], "tmax": round(d["temperature_2m_max"][i]),
+                     "tmin": round(d["temperature_2m_min"][i]),
+                     "precip": round(d["precipitation_sum"][i], 2),
+                     "snow": round(d["snowfall_sum"][i], 2), "label": label, "icon": icon})
+    return {"source": "live", "days": days} if days else None
+
+
 def fetch_forecast():
-    """7-day daily forecast for the store. Synthetic story forecast by default;
-    real Open-Meteo when WEATHER_LIVE is set (falls back to synthetic on any
-    error). Cached for an hour."""
+    """7-day daily forecast for the store, cached an hour. Live Open-Meteo by
+    default so the outlook tracks the real date and location; falls back to the
+    synthetic story forecast if the network is unavailable. Set
+    WEATHER_SYNTHETIC=1 to force the demo forecast (offline demos, tests)."""
     if _cache["data"] and time.time() - _cache["at"] < 3600:
         return _cache["data"]
-    if not os.getenv("WEATHER_LIVE"):
-        data = _synthetic_forecast()
-        _cache.update(at=time.time(), data=data)
-        return data
-    data = None
-    try:
-        import httpx
-        r = httpx.get("https://api.open-meteo.com/v1/forecast", params={
-            "latitude": LAT, "longitude": LON,
-            "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,weathercode",
-            "temperature_unit": "fahrenheit", "precipitation_unit": "inch",
-            "timezone": "America/Chicago", "forecast_days": 7}, timeout=4)
-        r.raise_for_status()
-        d = r.json()["daily"]
-        days = []
-        for i in range(len(d["time"])):
-            label, icon = _wmo(d["weathercode"][i])
-            days.append({"date": d["time"][i], "tmax": round(d["temperature_2m_max"][i]),
-                         "tmin": round(d["temperature_2m_min"][i]),
-                         "precip": round(d["precipitation_sum"][i], 2),
-                         "snow": round(d["snowfall_sum"][i], 2), "label": label, "icon": icon})
-        if days:
-            data = {"source": "live", "days": days}
-    except Exception:  # noqa: BLE001 — fall back to the synthetic forecast
-        data = None
+    data = None if os.getenv("WEATHER_SYNTHETIC") else _live_forecast()
     if not data:
         data = _synthetic_forecast()
     _cache.update(at=time.time(), data=data)
@@ -233,12 +239,15 @@ def weather_alerts(forecast=None):
 
 
 def weather_outlook():
-    """Everything the dashboard's Weather view needs, in one payload."""
+    """The store's forecast for the dashboard's Weather view.
+
+    Just the 7-day forecast for now. The demand model (department_impact,
+    recommended_actions, weather_alerts) still lives in this module — re-add
+    those keys here to switch the department-demand feature back on."""
     forecast = fetch_forecast()
     return {
         "location": rd.STORE["location"], "source": forecast["source"],
-        "days": forecast["days"], "department_impact": department_impact(forecast),
-        "actions": recommended_actions(forecast),
+        "days": forecast["days"],
     }
 
 

@@ -87,11 +87,10 @@ def get_comms() -> dict:
 
 
 def get_weather_outlook() -> dict:
-    """The 7-day weather forecast for the store and its demand impact by
-    department: which categories the weather will push up or down, the estimated
-    dollar swing, and recommended actions (staffing, facings, what to feature).
-    Call this for any question about weather, temperature, rain, snow, or how the
-    forecast affects sales, demand, or what to stock and staff for this week."""
+    """The store's live 7-day weather forecast: daily high/low temperature,
+    conditions, rain, and snow for the store's location and the current date.
+    Call this for any question about the weather, temperature, rain, or snow this
+    week."""
     import weather
     return weather.weather_outlook()
 

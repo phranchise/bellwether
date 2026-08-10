@@ -214,6 +214,14 @@
     .wxi .fig { text-align: right; font-variant-numeric: tabular-nums; }
     .wxi .fig .idx { font-weight: 700; } .wxi .fig .usd { font-size: .74rem; }
     .wxi .fig .up { color: var(--good); } .wxi .fig .down { color: var(--serious); }
+    /* Today's weather chip in the header (click → Weather view) */
+    .wx-chip { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font: inherit; color: inherit;
+      background: var(--card); border: 1px solid var(--hairline); border-radius: 999px; padding: 5px 12px 5px 10px; box-shadow: var(--shadow); transition: border-color .12s, transform .12s; }
+    .wx-chip:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--hairline)); transform: translateY(-1px); }
+    .wx-chip .ic { font-size: 1.15rem; line-height: 1; }
+    .wx-chip .t { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .wx-chip .lbl { color: var(--muted); font-size: .78rem; }
+    @media (max-width: 560px) { .wx-chip .lbl { display: none; } }
   </style>
 </head>
 <body>
@@ -221,6 +229,7 @@
   <div class="topbar">
     <div class="brand"><span class="mark" aria-hidden="true"></span><span class="wordmark">Bellwether</span></div>
     <div class="topmeta">
+      <button class="wx-chip" id="wx-chip" data-goto="weather" title="See the 7-day forecast" hidden></button>
       <span class="live"><span class="dot" aria-hidden="true"></span><span id="clock">live</span></span>
       <span class="chip-sample" title="Prototype on synthetic data">SAMPLE DATA</span>
     </div>
@@ -260,13 +269,9 @@
     </section>
 
     <!-- WEATHER -->
-    <section class="view" id="view-weather" aria-label="Weather &amp; demand">
-      <h2>Weather &amp; demand <span class="count" id="wx-loc">7-day forecast · your store</span></h2>
+    <section class="view" id="view-weather" aria-label="Weather">
+      <h2>Weather <span class="count" id="wx-loc">7-day forecast · your store</span></h2>
       <div class="wx-strip" id="wx-days"></div>
-      <h2>Demand impact by department <span class="count">forecast vs a normal week</span></h2>
-      <div class="wx-impact" id="wx-impact"></div>
-      <h2>Recommended actions <span class="count">what to do about the weather</span></h2>
-      <div class="alerts" id="wx-actions"></div>
     </section>
 
     <!-- ALERTS -->
@@ -470,30 +475,27 @@ function drawMonth() {
 
 function renderSources(sources) { $("#sources").innerHTML = sources.map(s => `<div class="src"><span class="via">${esc(s.via)}</span><div><div class="n">${esc(s.name)}</div><div class="k">${esc(s.kind)}</div></div></div>`).join(""); }
 
-function renderWeather(w) {
-  if (!w || !w.days || !w.days.length) { $("#wx-days").innerHTML = `<p class="skeleton">Forecast unavailable.</p>`; $("#wx-impact").innerHTML = ""; $("#wx-actions").innerHTML = ""; return; }
-  $("#wx-loc").textContent = `7-day forecast · ${w.location} · ${w.source === "live" ? "● live" : "sample"}`;
-  const dow = iso => new Date(iso + "T00:00:00").toLocaleDateString([], { weekday: "short" });
-  $("#wx-days").innerHTML = w.days.map((d, i) => `<div class="wx-day ${d.tmax <= 62 ? "cold" : ""}">
-    <div class="dow">${i === 0 ? "Today" : dow(d.date)}</div><span class="ic" aria-hidden="true">${d.icon}</span>
+const wxDow = iso => new Date(iso + "T00:00:00").toLocaleDateString([], { weekday: "short" });
+function wxDayTile(d, i) {
+  return `<div class="wx-day ${d.tmax <= 62 ? "cold" : ""}">
+    <div class="dow">${i === 0 ? "Today" : wxDow(d.date)}</div><span class="ic" aria-hidden="true">${d.icon}</span>
     <div><span class="hi">${d.tmax}°</span> <span class="lo">${d.tmin}°</span></div>
-    ${d.snow > 0 ? `<div class="wet">❄ ${d.snow}"</div>` : d.precip > 0 ? `<div class="wet">💧 ${d.precip}"</div>` : `<div class="wet">&nbsp;</div>`}</div>`).join("");
-  const maxAbs = Math.max(2, ...w.department_impact.map(r => Math.abs(r.index - 100)));
-  $("#wx-impact").innerHTML = w.department_impact.map(r => {
-    const up = r.direction === "up", down = r.direction === "down", wpc = Math.abs(r.index - 100) / maxAbs * 50;
-    const bar = r.direction === "flat" ? "" : `<span class="track"><span class="center"></span><span class="fill ${up ? "up" : "down"}" style="width:${wpc}%"></span></span>`;
-    const cls = up ? "up" : down ? "down" : "flat";
-    return `<div class="wxi"><div><div class="dept">${ICON[r.department] || "📦"} ${esc(r.department)}</div><div class="drv">${esc(r.driver)}-driven</div></div>
-      ${bar || '<span class="track"></span>'}
-      <div class="fig"><div class="idx ${cls}">${r.index}</div><div class="usd ${cls}">${r.impact_usd >= 0 ? "+" : ""}${fmtUsd(r.impact_usd)}</div></div></div>`;
-  }).join("");
-  $("#wx-actions").innerHTML = w.actions.length ? w.actions.map(a => {
-    const up = a.direction === "up";
-    return `<div class="alert sev-${up ? "high" : "medium"}" role="listitem"><div class="alert-head">
-      <p class="alert-title">${ICON[a.department] || "📦"} ${esc(a.department)} demand ${up ? "up" : "down"} — ${a.impact_usd >= 0 ? "+" : ""}${fmtUsd(a.impact_usd)} vs a normal week</p></div>
-      <p class="alert-rec">→ ${esc(a.action)}</p>
-      <div class="row"><span class="tag">${esc(a.driver)}-driven</span>${a.featured ? `<span class="tag">Feature: ${esc(a.featured)}</span>` : ""}</div></div>`;
-  }).join("") : `<div class="card" style="padding:15px 17px"><span class="lp-clear">✓ No major weather-driven demand swings this week.</span></div>`;
+    ${d.snow > 0 ? `<div class="wet">❄ ${d.snow}"</div>` : d.precip > 0 ? `<div class="wet">💧 ${d.precip}"</div>` : `<div class="wet">&nbsp;</div>`}</div>`;
+}
+
+function renderWeather(w) {
+  if (!w || !w.days || !w.days.length) { $("#wx-days").innerHTML = `<p class="skeleton">Forecast unavailable.</p>`; return; }
+  $("#wx-loc").textContent = `7-day forecast · ${w.location} · ${w.source === "live" ? "● live" : "sample"}`;
+  $("#wx-days").innerHTML = w.days.map(wxDayTile).join("");
+}
+
+function renderHeaderWeather(w) {
+  const chip = $("#wx-chip");
+  if (!chip) return;
+  if (!w || !w.days || !w.days.length) { chip.hidden = true; return; }
+  const t = w.days[0];
+  chip.innerHTML = `<span class="ic" aria-hidden="true">${t.icon}</span><span class="t">${t.tmax}°</span><span class="lbl">${esc(t.label)}</span>`;
+  chip.hidden = false;
 }
 
 function headline(store, alerts) {
@@ -517,7 +519,7 @@ async function loadSummary() {
     headline(d.store, d.alerts); renderKPIs(d.kpis, d.trends); renderAlerts();
     renderProducts(d.top_movers, d.slow_movers); renderLP(d.loss_prevention);
     renderChart(d.departments); renderComms(d.comms); renderSources(d.data_sources);
-    renderCalendar(d.calendar_events, d.today); renderWeather(d.weather);
+    renderCalendar(d.calendar_events, d.today); renderWeather(d.weather); renderHeaderWeather(d.weather);
   } catch (e) { $("#home-alerts").innerHTML = `<p class="skeleton">Couldn't load store data. Refresh to retry.</p>`; }
 }
 

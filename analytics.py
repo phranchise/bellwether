@@ -215,12 +215,9 @@ def generate_alerts(compliance_weighting=True):
             priority=min(100, 60 + round(f["risk"] / 4)),
         ))
 
-    # --- Weather-driven demand: forecast-based upside/risk per department. ---
-    try:
-        import weather
-        alerts.extend(weather.weather_alerts())
-    except Exception as e:  # noqa: BLE001 — weather is best-effort, never break core alerts
-        print(f"[alerts] weather signals skipped: {type(e).__name__}: {e}")
+    # --- Weather-driven demand alerts are off for now (the dashboard just shows
+    # the forecast). weather.weather_alerts() still exists — re-enable here to
+    # rank weather-driven department swings alongside the other alerts. ---
 
     alerts.sort(key=lambda a: a["priority"], reverse=True)
     return alerts
