@@ -215,6 +215,13 @@ def generate_alerts(compliance_weighting=True):
             priority=min(100, 60 + round(f["risk"] / 4)),
         ))
 
+    # --- Weather-driven demand: forecast-based upside/risk per department. ---
+    try:
+        import weather
+        alerts.extend(weather.weather_alerts())
+    except Exception as e:  # noqa: BLE001 — weather is best-effort, never break core alerts
+        print(f"[alerts] weather signals skipped: {type(e).__name__}: {e}")
+
     alerts.sort(key=lambda a: a["priority"], reverse=True)
     return alerts
 

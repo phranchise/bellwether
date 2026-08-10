@@ -192,6 +192,28 @@
     .skeleton { color: var(--muted); }
     footer { margin: 2.5rem 0 1rem; color: var(--muted); font-size: .82rem; border-top: 1px solid var(--hairline); padding-top: 1rem; }
     .tooltip { position: fixed; pointer-events: none; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: .74rem; padding: 6px 9px; border-radius: 7px; opacity: 0; transition: opacity .12s; z-index: 30; white-space: nowrap; }
+
+    /* Weather & demand */
+    .wx-strip { display: grid; gap: 10px; grid-template-columns: repeat(7, 1fr); margin-bottom: 1.5rem; }
+    @media (max-width: 720px) { .wx-strip { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 420px) { .wx-strip { grid-template-columns: repeat(3, 1fr); } }
+    .wx-day { background: var(--card); border: 1px solid var(--hairline); border-radius: 12px; padding: 10px 8px; text-align: center; box-shadow: var(--shadow); }
+    .wx-day.cold { border-color: color-mix(in srgb, var(--brand) 45%, var(--hairline)); background: color-mix(in srgb, var(--brand-soft) 55%, var(--card)); }
+    .wx-day .dow { font-size: .68rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+    .wx-day .ic { font-size: 1.5rem; line-height: 1.4; display: block; }
+    .wx-day .hi { font-weight: 700; } .wx-day .lo { color: var(--muted); }
+    .wx-day .wet { font-size: .64rem; color: var(--brand-ink); font-family: var(--mono); margin-top: 2px; }
+    .wx-impact { display: grid; gap: 8px; margin-bottom: 1.5rem; }
+    .wxi { display: grid; grid-template-columns: 1.1fr 2fr auto; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--hairline); border-radius: 12px; padding: 11px 14px; box-shadow: var(--shadow); }
+    @media (max-width: 560px) { .wxi { grid-template-columns: 1fr auto; } .wxi .track { display: none; } }
+    .wxi .dept { font-weight: 600; font-size: .9rem; } .wxi .drv { color: var(--muted); font-size: .74rem; }
+    .wxi .track { position: relative; height: 8px; background: var(--brand-soft); border-radius: 5px; }
+    .wxi .track .center { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--hairline); }
+    .wxi .track .fill { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+    .wxi .track .fill.up { left: 50%; background: var(--good); } .wxi .track .fill.down { right: 50%; background: var(--serious); }
+    .wxi .fig { text-align: right; font-variant-numeric: tabular-nums; }
+    .wxi .fig .idx { font-weight: 700; } .wxi .fig .usd { font-size: .74rem; }
+    .wxi .fig .up { color: var(--good); } .wxi .fig .down { color: var(--serious); }
   </style>
 </head>
 <body>
@@ -207,6 +229,7 @@
   <nav class="tabs" id="tabs" aria-label="Sections">
     <button data-view="home" aria-current="true"><span class="ic">🏠</span>Home</button>
     <button data-view="sales"><span class="ic">📈</span>Sales</button>
+    <button data-view="weather"><span class="ic">🌦️</span>Weather</button>
     <button data-view="alerts"><span class="ic">⚠️</span>Alerts<span class="pip" id="pip-alerts" hidden></span></button>
     <button data-view="calendar"><span class="ic">📅</span>Calendar</button>
     <button data-view="inbox"><span class="ic">📥</span>Inbox<span class="pip" id="pip-inbox" hidden></span></button>
@@ -234,6 +257,16 @@
       </div>
       <h2>Department performance <span class="count">sales vs plan this week</span></h2>
       <div class="chart" id="chart"></div>
+    </section>
+
+    <!-- WEATHER -->
+    <section class="view" id="view-weather" aria-label="Weather &amp; demand">
+      <h2>Weather &amp; demand <span class="count" id="wx-loc">7-day forecast · your store</span></h2>
+      <div class="wx-strip" id="wx-days"></div>
+      <h2>Demand impact by department <span class="count">forecast vs a normal week</span></h2>
+      <div class="wx-impact" id="wx-impact"></div>
+      <h2>Recommended actions <span class="count">what to do about the weather</span></h2>
+      <div class="alerts" id="wx-actions"></div>
     </section>
 
     <!-- ALERTS -->
@@ -437,6 +470,32 @@ function drawMonth() {
 
 function renderSources(sources) { $("#sources").innerHTML = sources.map(s => `<div class="src"><span class="via">${esc(s.via)}</span><div><div class="n">${esc(s.name)}</div><div class="k">${esc(s.kind)}</div></div></div>`).join(""); }
 
+function renderWeather(w) {
+  if (!w || !w.days || !w.days.length) { $("#wx-days").innerHTML = `<p class="skeleton">Forecast unavailable.</p>`; $("#wx-impact").innerHTML = ""; $("#wx-actions").innerHTML = ""; return; }
+  $("#wx-loc").textContent = `7-day forecast · ${w.location} · ${w.source === "live" ? "● live" : "sample"}`;
+  const dow = iso => new Date(iso + "T00:00:00").toLocaleDateString([], { weekday: "short" });
+  $("#wx-days").innerHTML = w.days.map((d, i) => `<div class="wx-day ${d.tmax <= 62 ? "cold" : ""}">
+    <div class="dow">${i === 0 ? "Today" : dow(d.date)}</div><span class="ic" aria-hidden="true">${d.icon}</span>
+    <div><span class="hi">${d.tmax}°</span> <span class="lo">${d.tmin}°</span></div>
+    ${d.snow > 0 ? `<div class="wet">❄ ${d.snow}"</div>` : d.precip > 0 ? `<div class="wet">💧 ${d.precip}"</div>` : `<div class="wet">&nbsp;</div>`}</div>`).join("");
+  const maxAbs = Math.max(2, ...w.department_impact.map(r => Math.abs(r.index - 100)));
+  $("#wx-impact").innerHTML = w.department_impact.map(r => {
+    const up = r.direction === "up", down = r.direction === "down", wpc = Math.abs(r.index - 100) / maxAbs * 50;
+    const bar = r.direction === "flat" ? "" : `<span class="track"><span class="center"></span><span class="fill ${up ? "up" : "down"}" style="width:${wpc}%"></span></span>`;
+    const cls = up ? "up" : down ? "down" : "flat";
+    return `<div class="wxi"><div><div class="dept">${ICON[r.department] || "📦"} ${esc(r.department)}</div><div class="drv">${esc(r.driver)}-driven</div></div>
+      ${bar || '<span class="track"></span>'}
+      <div class="fig"><div class="idx ${cls}">${r.index}</div><div class="usd ${cls}">${r.impact_usd >= 0 ? "+" : ""}${fmtUsd(r.impact_usd)}</div></div></div>`;
+  }).join("");
+  $("#wx-actions").innerHTML = w.actions.length ? w.actions.map(a => {
+    const up = a.direction === "up";
+    return `<div class="alert sev-${up ? "high" : "medium"}" role="listitem"><div class="alert-head">
+      <p class="alert-title">${ICON[a.department] || "📦"} ${esc(a.department)} demand ${up ? "up" : "down"} — ${a.impact_usd >= 0 ? "+" : ""}${fmtUsd(a.impact_usd)} vs a normal week</p></div>
+      <p class="alert-rec">→ ${esc(a.action)}</p>
+      <div class="row"><span class="tag">${esc(a.driver)}-driven</span>${a.featured ? `<span class="tag">Feature: ${esc(a.featured)}</span>` : ""}</div></div>`;
+  }).join("") : `<div class="card" style="padding:15px 17px"><span class="lp-clear">✓ No major weather-driven demand swings this week.</span></div>`;
+}
+
 function headline(store, alerts) {
   const h = new Date().getHours();
   $("#greet").textContent = (h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening") + `, ${store.manager} · ${store.name}, ${store.location}`;
@@ -458,11 +517,11 @@ async function loadSummary() {
     headline(d.store, d.alerts); renderKPIs(d.kpis, d.trends); renderAlerts();
     renderProducts(d.top_movers, d.slow_movers); renderLP(d.loss_prevention);
     renderChart(d.departments); renderComms(d.comms); renderSources(d.data_sources);
-    renderCalendar(d.calendar_events, d.today);
+    renderCalendar(d.calendar_events, d.today); renderWeather(d.weather);
   } catch (e) { $("#home-alerts").innerHTML = `<p class="skeleton">Couldn't load store data. Refresh to retry.</p>`; }
 }
 
-const EXAMPLES = ["What needs my attention today?", "What's our policy on markdowns above 15%?", "Is there any fraud or shrink risk?", "What's on my schedule today?"];
+const EXAMPLES = ["What needs my attention today?", "How will the weather affect sales this week?", "What's our policy on markdowns above 15%?", "Is there any fraud or shrink risk?"];
 function renderChips() {
   $("#chips").innerHTML = EXAMPLES.map(q => `<button class="btn chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
   document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { $("#q").value = b.dataset.q; askNow(b.dataset.q); }));
@@ -485,7 +544,7 @@ $("#ask-form").addEventListener("submit", e => { e.preventDefault(); const q = $
 
 // init
 const start = location.hash.replace("#", "");
-if (["home","sales","alerts","calendar","inbox","ask"].includes(start)) setView(start);
+if (["home","sales","weather","alerts","calendar","inbox","ask"].includes(start)) setView(start);
 renderChips(); loadSummary(); loadTicker();
 setInterval(loadSummary, 45000); setInterval(loadTicker, 30000);
 </script>

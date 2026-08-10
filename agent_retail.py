@@ -86,6 +86,16 @@ def get_comms() -> dict:
     return {"emails": rd.EMAILS, "messages": rd.MESSAGES, "calendar": rd.CALENDAR}
 
 
+def get_weather_outlook() -> dict:
+    """The 7-day weather forecast for the store and its demand impact by
+    department: which categories the weather will push up or down, the estimated
+    dollar swing, and recommended actions (staffing, facings, what to feature).
+    Call this for any question about weather, temperature, rain, snow, or how the
+    forecast affects sales, demand, or what to stock and staff for this week."""
+    import weather
+    return weather.weather_outlook()
+
+
 INSTRUCTION = (
     "You are the Retail AIOS assistant for a busy store manager. Be concise, "
     "direct, and practical. Follow these rules:\n"
@@ -107,7 +117,8 @@ root_agent = Agent(
     model=MODEL,
     description="Store-manager assistant grounded in the store's own KPIs, tasks, and ops docs.",
     instruction=INSTRUCTION,
-    tools=[get_store_kpis, get_alerts, get_tasks, search_ops_docs, get_loss_prevention, get_comms],
+    tools=[get_store_kpis, get_alerts, get_tasks, search_ops_docs, get_loss_prevention,
+           get_comms, get_weather_outlook],
 )
 
 
@@ -174,10 +185,13 @@ _OAI_TOOLS = [
         "description": get_loss_prevention.__doc__, "parameters": {"type": "object", "properties": {}}}},
     {"type": "function", "function": {"name": "get_comms",
         "description": get_comms.__doc__, "parameters": {"type": "object", "properties": {}}}},
+    {"type": "function", "function": {"name": "get_weather_outlook",
+        "description": get_weather_outlook.__doc__, "parameters": {"type": "object", "properties": {}}}},
 ]
 _TOOL_FNS = {"get_store_kpis": get_store_kpis, "get_alerts": get_alerts,
              "get_tasks": get_tasks, "search_ops_docs": search_ops_docs,
-             "get_loss_prevention": get_loss_prevention, "get_comms": get_comms}
+             "get_loss_prevention": get_loss_prevention, "get_comms": get_comms,
+             "get_weather_outlook": get_weather_outlook}
 
 
 def run_openai_agent(message: str, note: str = None):

@@ -106,7 +106,25 @@ def summary():
         "loss_prevention": analytics.detect_shrink(),
         "calendar_events": rd.CALENDAR_EVENTS,
         "today": rd.TODAY_ISO,
+        "weather": _weather_safe(),
     }
+
+
+def _weather_safe():
+    """Weather outlook for the dashboard; None if the forecast layer errors so the
+    rest of the summary still loads."""
+    try:
+        import weather
+        return weather.weather_outlook()
+    except Exception:  # noqa: BLE001 — degrade gracefully
+        return None
+
+
+@app.get("/api/weather")
+def weather_view():
+    """7-day forecast + per-department demand impact + recommended actions."""
+    return _weather_safe() or {"location": rd.STORE["location"], "source": "unavailable",
+                               "days": [], "department_impact": [], "actions": []}
 
 
 # --- Live market watch (external data via API, with a graceful fallback). ---
