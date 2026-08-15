@@ -538,27 +538,45 @@ function stepLine(s) {
   return `<div class="step ${s.step}">${label} — ${esc(body)}</div>`;
 }
 // Minimal markdown for assistant answers: escape first (XSS-safe), then render
-// bold/italic/code inline and ordered/unordered lists + paragraphs as blocks.
+// bold/italic/code inline plus headings, paragraphs, and indentation-aware
+// ordered/unordered lists (nested sub-bullets keep their parent's numbering).
 function mdLite(md) {
   const inline = (t) => esc(t)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, "$1<em>$2</em>")
     .replace(/`([^`]+)`/g, "<code>$1</code>");
-  let html = "", list = null, para = [];
+  let html = "", para = [];
+  const stack = []; // open lists: { tag, indent, liOpen }
+  const closeDeeperThan = (indent) => {
+    while (stack.length && stack[stack.length - 1].indent > indent) {
+      const f = stack.pop(); html += (f.liOpen ? "</li>" : "") + `</${f.tag}>`;
+    }
+  };
+  const closeAll = () => closeDeeperThan(-1);
   const flushPara = () => { if (para.length) { html += `<p>${para.join(" ")}</p>`; para = []; } };
-  const flushList = () => { if (list) { html += `</${list}>`; list = null; } };
   for (const raw of (md || "").split(/\r?\n/)) {
+    const indent = raw.match(/^\s*/)[0].replace(/\t/g, "  ").length;
     const line = raw.trim();
-    if (!line) { flushPara(); flushList(); continue; }
+    if (!line) { flushPara(); continue; }
     const h = line.match(/^#{1,3}\s+(.*)$/);
     const ol = line.match(/^\d+[.)]\s+(.*)$/);
-    const ul = line.match(/^[-*]\s+(.*)$/);
-    if (h) { flushPara(); flushList(); html += `<p class="mdh">${inline(h[1])}</p>`; }
-    else if (ol) { flushPara(); if (list !== "ol") { flushList(); html += "<ol>"; list = "ol"; } html += `<li>${inline(ol[1])}</li>`; }
-    else if (ul) { flushPara(); if (list !== "ul") { flushList(); html += "<ul>"; list = "ul"; } html += `<li>${inline(ul[1])}</li>`; }
-    else { flushList(); para.push(inline(line)); }
+    const ul = line.match(/^[-*+]\s+(.*)$/);
+    if (h) { flushPara(); closeAll(); html += `<p class="mdh">${inline(h[1])}</p>`; continue; }
+    if (ol || ul) {
+      flushPara();
+      const tag = ol ? "ol" : "ul", content = (ol || ul)[1];
+      closeDeeperThan(indent);
+      let top = stack[stack.length - 1];
+      if (top && top.indent === indent) {
+        if (top.liOpen) { html += "</li>"; top.liOpen = false; }
+        if (top.tag !== tag) { const f = stack.pop(); html += `</${f.tag}><${tag}>`; stack.push({ tag, indent, liOpen: false }); top = stack[stack.length - 1]; }
+      } else { html += `<${tag}>`; stack.push({ tag, indent, liOpen: false }); top = stack[stack.length - 1]; }
+      html += `<li>${inline(content)}`; top.liOpen = true;
+      continue;
+    }
+    closeAll(); para.push(inline(line));
   }
-  flushPara(); flushList();
+  flushPara(); closeAll();
   return html;
 }
 async function askNow(q) {
