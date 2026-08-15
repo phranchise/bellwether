@@ -178,7 +178,11 @@
     .ask-form input { flex: 1 1 240px; min-height: 46px; padding: 10px 14px; font-size: 1rem; color: var(--ink); background: var(--paper); border: 1px solid var(--hairline); border-radius: 11px; font-family: var(--sans); }
     .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 0; }
     .chip { font-size: .84rem; padding: 8px 12px; min-height: 38px; border-radius: 999px; }
-    .answer { margin-top: 14px; padding: 14px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 11px; white-space: pre-wrap; }
+    .answer { margin-top: 14px; padding: 14px; background: var(--paper); border: 1px solid var(--hairline); border-radius: 11px; line-height: 1.55; }
+    .answer p { margin: 0 0 9px; } .answer p:last-child { margin-bottom: 0; }
+    .answer ol, .answer ul { margin: 8px 0; padding-left: 22px; } .answer li { margin: 4px 0; }
+    .answer .mdh { font-weight: 600; margin: 4px 0 6px; }
+    .answer code { font-family: ui-monospace, "JetBrains Mono", monospace; background: var(--hairline); padding: 1px 5px; border-radius: 5px; font-size: 0.92em; }
     .cites { margin-top: 8px; font-size: .78rem; color: var(--muted); font-family: var(--mono); }
     details.trace { margin-top: 10px; } details.trace summary { cursor: pointer; color: var(--brand); font-size: .85rem; }
     .step { font-family: var(--mono); font-size: .77rem; padding: 6px 9px; border-radius: 7px; margin-top: 6px; }
@@ -533,13 +537,37 @@ function stepLine(s) {
   const body = s.tool ? `${s.tool}(${Object.entries(s.args||{}).map(([k,v]) => k+"="+JSON.stringify(v)).join(", ")})` : (s.text||"").slice(0,160);
   return `<div class="step ${s.step}">${label} — ${esc(body)}</div>`;
 }
+// Minimal markdown for assistant answers: escape first (XSS-safe), then render
+// bold/italic/code inline and ordered/unordered lists + paragraphs as blocks.
+function mdLite(md) {
+  const inline = (t) => esc(t)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, "$1<em>$2</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+  let html = "", list = null, para = [];
+  const flushPara = () => { if (para.length) { html += `<p>${para.join(" ")}</p>`; para = []; } };
+  const flushList = () => { if (list) { html += `</${list}>`; list = null; } };
+  for (const raw of (md || "").split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) { flushPara(); flushList(); continue; }
+    const h = line.match(/^#{1,3}\s+(.*)$/);
+    const ol = line.match(/^\d+[.)]\s+(.*)$/);
+    const ul = line.match(/^[-*]\s+(.*)$/);
+    if (h) { flushPara(); flushList(); html += `<p class="mdh">${inline(h[1])}</p>`; }
+    else if (ol) { flushPara(); if (list !== "ol") { flushList(); html += "<ol>"; list = "ol"; } html += `<li>${inline(ol[1])}</li>`; }
+    else if (ul) { flushPara(); if (list !== "ul") { flushList(); html += "<ul>"; list = "ul"; } html += `<li>${inline(ul[1])}</li>`; }
+    else { flushList(); para.push(inline(line)); }
+  }
+  flushPara(); flushList();
+  return html;
+}
 async function askNow(q) {
   const box = $("#answer"); box.innerHTML = `<p class="spinner" role="status">Bellwether is planning and checking the data…</p>`;
   try {
     const d = await (await fetch("/api/assistant", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ question: q }) })).json();
     const cites = (d.citations||[]).length ? `<div class="cites">📎 grounded in: ${d.citations.map(esc).join(", ")}</div>` : "";
     const trace = (d.trace||[]).length ? `<details class="trace"><summary>Show reasoning (${d.tool_calls} tool call${d.tool_calls===1?"":"s"})</summary>${d.trace.map(stepLine).join("")}</details>` : "";
-    box.innerHTML = `<div class="answer">${esc(d.answer)}</div>${cites}${trace}`;
+    box.innerHTML = `<div class="answer">${mdLite(d.answer)}</div>${cites}${trace}`;
   } catch { box.innerHTML = `<p class="spinner">Couldn't reach the assistant. Try again.</p>`; }
 }
 $("#ask-form").addEventListener("submit", e => { e.preventDefault(); const q = $("#q").value.trim(); if (q) askNow(q); });
